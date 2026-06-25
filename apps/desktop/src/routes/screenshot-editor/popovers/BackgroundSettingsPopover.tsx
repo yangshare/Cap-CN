@@ -22,6 +22,7 @@ import {
 	type RGBColor,
 } from "../../editor/projectConfig";
 import { BACKGROUND_COLORS, hexToRgb, RgbInput } from "../ColorPicker";
+import { useI18n } from "~/i18n/I18nProvider";
 import { useScreenshotEditorContext } from "../context";
 import { EditorButton, Field, Slider } from "../ui";
 
@@ -38,21 +39,22 @@ function prewarmBackground(path: string | null | undefined) {
 	});
 }
 
-const BACKGROUND_SOURCES = {
-	wallpaper: "Wallpaper",
-	image: "Image",
-	color: "Color",
-	gradient: "Gradient",
-} satisfies Record<BackgroundSource["type"], string>;
-
-const BACKGROUND_SOURCES_LIST = [
+const BACKGROUND_SOURCE_KEYS = [
 	"wallpaper",
 	"image",
 	"color",
 	"gradient",
-] satisfies Array<BackgroundSource["type"]>;
+] as const satisfies Array<BackgroundSource["type"]>;
 
-// Copied gradients
+const WALLPAPER_THEME_KEYS = [
+	"macOS",
+	"dark",
+	"blue",
+	"cities",
+	"purple",
+	"orange",
+] as const;
+
 const BACKGROUND_GRADIENTS = [
 	{ from: [15, 52, 67], to: [52, 232, 158] },
 	{ from: [34, 193, 195], to: [253, 187, 45] },
@@ -133,16 +135,8 @@ const WALLPAPER_NAMES = [
 
 type WallpaperName = (typeof WALLPAPER_NAMES)[number];
 
-const BACKGROUND_THEMES = {
-	macOS: "macOS",
-	dark: "Dark",
-	blue: "Blue",
-	cities: "Cities",
-	purple: "Purple",
-	orange: "Orange",
-};
-
 export function BackgroundSettingsPopover() {
+	const { t } = useI18n();
 	const {
 		project,
 		setProject,
@@ -155,7 +149,7 @@ export function BackgroundSettingsPopover() {
 
 	// Background tabs
 	const [backgroundTab, setBackgroundTab] =
-		createSignal<keyof typeof BACKGROUND_THEMES>("macOS");
+		createSignal<(typeof WALLPAPER_THEME_KEYS)[number]>("macOS");
 
 	const [wallpapers] = createResource(async () => {
 		// Only load visible wallpapers initially
@@ -238,7 +232,7 @@ export function BackgroundSettingsPopover() {
 					)
 				}
 				leftIcon={<IconCapImage class="size-4" />}
-				tooltipText="Background"
+				tooltipText={t("screenshotEditor.popovers.background")}
 				kbd={["B"]}
 			/>
 			<Popover.Portal>
@@ -249,7 +243,7 @@ export function BackgroundSettingsPopover() {
 					>
 						<Field
 							icon={<IconCapImage class="size-4" />}
-							name="Background Image"
+							name={t("screenshotEditor.popovers.backgroundImage")}
 						>
 							<KTabs
 								value={project.background.source.type}
@@ -294,14 +288,14 @@ export function BackgroundSettingsPopover() {
 								}}
 							>
 								<KTabs.List class="flex flex-row gap-2 items-center rounded-lg relative">
-									<For each={BACKGROUND_SOURCES_LIST}>
+									<For each={BACKGROUND_SOURCE_KEYS}>
 										{(item) => {
 											return (
 												<KTabs.Trigger
 													class="z-10 flex-1 py-2.5 px-2 text-xs text-gray-11 data-selected:border-gray-3 data-selected:bg-gray-3 not-data-selected:hover:border-gray-7 rounded-[10px] transition-colors duration-200 outline-hidden border data-selected:text-gray-12 peer"
 													value={item}
 												>
-													{BACKGROUND_SOURCES[item]}
+													{t(`screenshotEditor.popovers.backgroundSources.${item}`)}
 												</KTabs.Trigger>
 											);
 										}}
@@ -316,18 +310,18 @@ export function BackgroundSettingsPopover() {
 										value={backgroundTab()}
 									>
 										<KTabs.List class="flex overflow-x-auto overscroll-contain relative z-10 flex-row gap-2 items-center mb-3 text-xs hide-scroll">
-											<For each={Object.entries(BACKGROUND_THEMES)}>
-												{([key, value]) => (
+											<For each={WALLPAPER_THEME_KEYS}>
+												{(key) => (
 													<KTabs.Trigger
 														onClick={() =>
-															setBackgroundTab(
-																key as keyof typeof BACKGROUND_THEMES,
-															)
+															setBackgroundTab(key)
 														}
 														value={key}
 														class="flex relative z-10 flex-1 justify-center items-center px-4 py-2 bg-transparent rounded-lg border transition-colors duration-200 text-gray-11 not-data-selected:hover:border-gray-7 data-selected:bg-gray-3 data-selected:border-gray-3 group data-selected:text-gray-12 disabled:opacity-50 focus:outline-hidden"
 													>
-														{value}
+														{t(
+															`screenshotEditor.popovers.backgroundThemes.${key}`,
+														)}
 													</KTabs.Trigger>
 												)}
 											</For>
@@ -369,7 +363,9 @@ export function BackgroundSettingsPopover() {
 															src={photo.url}
 															loading="eager"
 															class="object-cover w-full h-full"
-															alt="Wallpaper option"
+															alt={t(
+																"screenshotEditor.popovers.wallpaperOption",
+															)}
 														/>
 													</KRadioGroup.ItemControl>
 												</KRadioGroup.Item>
@@ -392,7 +388,9 @@ export function BackgroundSettingsPopover() {
 											>
 												<IconCapImage class="text-gray-11 size-6" />
 												<span class="text-gray-12">
-													Click to select or drag and drop image
+													{t(
+														"screenshotEditor.popovers.clickToSelectImage",
+													)}
 												</span>
 											</button>
 										}
@@ -402,7 +400,9 @@ export function BackgroundSettingsPopover() {
 												<img
 													src={convertFileSrc(source())}
 													class="object-cover w-full h-full"
-													alt="Selected background"
+													alt={t(
+														"screenshotEditor.popovers.selectedBackground",
+													)}
 												/>
 												<div class="absolute top-2 right-2">
 													<button
@@ -557,7 +557,10 @@ export function BackgroundSettingsPopover() {
 							</KTabs>
 						</Field>
 
-						<Field name="Background Blur" icon={<IconCapBgBlur />}>
+						<Field
+							name={t("screenshotEditor.popovers.backgroundBlur")}
+							icon={<IconCapBgBlur />}
+						>
 							<Slider
 								value={[project.background.blur]}
 								onChange={(v) => setProject("background", "blur", v[0])}

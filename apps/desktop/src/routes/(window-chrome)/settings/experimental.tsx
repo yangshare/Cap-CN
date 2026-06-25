@@ -8,6 +8,7 @@ import {
 	deriveGeneralSettings,
 	type GeneralSettingsStore,
 } from "~/utils/general-settings";
+import { useI18n } from "~/i18n/I18nProvider";
 import {
 	Section,
 	SectionRows,
@@ -30,6 +31,7 @@ function Inner(props: {
 	initialStore: GeneralSettingsStore | null;
 	osType: ReturnType<typeof type>;
 }) {
+	const { t } = useI18n();
 	const [settings, setSettings] = createStore<GeneralSettingsStore>(
 		deriveGeneralSettings(props.initialStore),
 	);
@@ -62,15 +64,15 @@ function Inner(props: {
 					when={props.osType !== "windows"}
 					fallback={
 						<p class="text-xs leading-relaxed text-gray-10 px-1">
-							No experimental features are currently available on this platform.
+							{t("settings.experimental.noneAvailable")}
 						</p>
 					}
 				>
-					<Section title="Preview">
+					<Section title={t("settings.experimental.preview")}>
 						<SectionRows>
 							<ToggleSettingItem
-								label="Native camera preview"
-								description="Render the camera preview using a native GPU surface instead of through the webview. On by default on macOS; turn off if you run into camera preview issues."
+								label={t("settings.experimental.previewNative.label")}
+								description={t("settings.experimental.previewNative.desc")}
 								value={!!settings.enableNativeCameraPreview}
 								onChange={(value) =>
 									handleChange("enableNativeCameraPreview", value)
@@ -80,11 +82,11 @@ function Inner(props: {
 					</Section>
 				</Show>
 
-				<Section title="Reliability">
+				<Section title={t("settings.experimental.reliability")}>
 					<SectionRows>
 						<ToggleSettingItem
-							label="Out-of-process muxer"
-							description="Run the fragmented-MP4 muxer in an isolated subprocess so muxer crashes can't take down your recording. Requires the bundled cap-muxer binary."
+							label={t("settings.experimental.muxer.label")}
+							description={t("settings.experimental.muxer.desc")}
 							value={!!settings.outOfProcessMuxer}
 							onChange={(value) => handleChange("outOfProcessMuxer", value)}
 						/>

@@ -14,6 +14,7 @@ import IconLucideCopy from "~icons/lucide/copy";
 import IconLucideFolder from "~icons/lucide/folder";
 import IconLucideMoreHorizontal from "~icons/lucide/more-horizontal";
 import IconLucideSave from "~icons/lucide/save";
+import { useI18n } from "~/i18n/I18nProvider";
 import { AnnotationTools } from "./AnnotationTools";
 import { useScreenshotEditorContext } from "./context";
 import { AspectRatioSelect } from "./popovers/AspectRatioSelect";
@@ -33,6 +34,7 @@ import {
 import { useScreenshotExport } from "./useScreenshotExport";
 
 export function Header() {
+	const { t } = useI18n();
 	const ctx = useScreenshotEditorContext();
 	const {
 		setDialog,
@@ -106,7 +108,7 @@ export function Header() {
 			<div class="flex items-center gap-2 absolute left-1/2 -translate-x-1/2">
 				<AspectRatioSelect />
 				<EditorButton
-					tooltipText="Crop Image"
+					tooltipText={t("screenshotEditor.header.cropImage")}
 					onClick={cropDialogHandler}
 					disabled={isCropDisabled()}
 					leftIcon={<IconCapCrop class="size-4" />}
@@ -133,13 +135,13 @@ export function Header() {
 					onClick={() => {
 						exportImage("clipboard");
 					}}
-					tooltipText="Copy to Clipboard"
+					tooltipText={t("screenshotEditor.header.copyToClipboard")}
 					disabled={isExporting()}
 					leftIcon={<IconLucideCopy class="w-4" />}
 				/>
 
 				<EditorButton
-					tooltipText="Save"
+					tooltipText={t("screenshotEditor.header.save")}
 					onClick={() => exportImage("file")}
 					disabled={isExporting()}
 					leftIcon={<IconLucideSave class="size-4" />}
@@ -148,7 +150,7 @@ export function Header() {
 				<DropdownMenu gutter={8} placement="bottom-end">
 					<EditorButton<typeof DropdownMenu.Trigger>
 						as={DropdownMenu.Trigger}
-						tooltipText="More Actions"
+						tooltipText={t("screenshotEditor.header.moreActions")}
 						leftIcon={<IconLucideMoreHorizontal class="size-4" />}
 					/>
 					<DropdownMenu.Portal>
@@ -167,13 +169,13 @@ export function Header() {
 										}}
 									>
 										<IconLucideFolder class="size-4 text-gray-11" />
-										<span>Open Folder</span>
+										<span>{t("screenshotEditor.header.openFolder")}</span>
 									</DropdownItem>
 									<DropdownItem
 										onSelect={async () => {
 											if (
 												await ask(
-													"Are you sure you want to delete this screenshot?",
+													t("screenshotEditor.header.deleteConfirm"),
 												)
 											) {
 												await remove(path());
@@ -182,7 +184,7 @@ export function Header() {
 										}}
 									>
 										<IconCapTrash class="size-4 text-gray-11" />
-										<span>Delete</span>
+										<span>{t("screenshotEditor.header.delete")}</span>
 									</DropdownItem>
 								</MenuItemList>
 							</PopperContent>

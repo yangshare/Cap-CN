@@ -7,6 +7,7 @@ import {
 	createCurrentRecordingQuery,
 	isSystemAudioSupported,
 } from "~/utils/queries";
+import { useI18n } from "~/i18n/I18nProvider";
 import { useRecordingOptions } from "../OptionsContext";
 import {
 	DEVICE_ROW_CLASS,
@@ -38,6 +39,7 @@ export function SystemAudioToggleRoot(
 		icon: JSX.Element;
 	},
 ) {
+	const { t } = useI18n();
 	const { rawOptions, setOptions } = useRecordingOptions();
 	const currentRecording = createCurrentRecordingQuery();
 	const systemAudioSupported = createQuery(() => isSystemAudioSupported);
@@ -46,7 +48,7 @@ export function SystemAudioToggleRoot(
 		!!currentRecording.data || systemAudioSupported.data === false;
 	const tooltipMessage = () => {
 		if (systemAudioSupported.data === false) {
-			return "System audio capture requires macOS 13.0 or later";
+			return t("newMain.devices.systemAudioTooltip");
 		}
 		return undefined;
 	};
@@ -66,15 +68,17 @@ export function SystemAudioToggleRoot(
 			{props.icon}
 			<p class={DEVICE_ROW_LABEL_CLASS}>
 				{rawOptions.captureSystemAudio
-					? "Record System Audio"
-					: "No System Audio"}
+					? t("newMain.devices.recordSystemAudio")
+					: t("newMain.devices.noSystemAudio")}
 			</p>
 			<div class={DEVICE_ROW_TRAILING_CLASS}>
 				<Dynamic
 					component={props.PillComponent}
 					variant={rawOptions.captureSystemAudio ? "blue" : "gray"}
 				>
-					{rawOptions.captureSystemAudio ? "On" : "Off"}
+					{rawOptions.captureSystemAudio
+						? t("newMain.devices.on")
+						: t("newMain.devices.off")}
 				</Dynamic>
 			</div>
 		</button>

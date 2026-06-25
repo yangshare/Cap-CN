@@ -12,6 +12,7 @@ import {
 } from "solid-js";
 import { createStore, reconcile, unwrap } from "solid-js/store";
 import { createLazySignal, type FrameData } from "~/utils/socket";
+import { useI18n } from "~/i18n/I18nProvider";
 import {
 	type Annotation,
 	type AnnotationType,
@@ -179,6 +180,7 @@ const DEFAULT_PROJECT: ScreenshotProject = {
 } as unknown as ScreenshotProject;
 
 function createScreenshotEditorContext() {
+	const { t } = useI18n();
 	const [project, setProject] = createStore<ScreenshotProject>(DEFAULT_PROJECT);
 	const [annotations, setAnnotations] = createStore<Annotation[]>([]);
 	const [selectedAnnotationId, setSelectedAnnotationId] = createSignal<
@@ -660,7 +662,7 @@ function createScreenshotEditorContext() {
 			return editorInstance()?.path ?? "";
 		},
 		get prettyName() {
-			return editorInstance()?.prettyName ?? "Screenshot";
+			return editorInstance()?.prettyName ?? t("screenshotEditor.defaultName");
 		},
 		project,
 		setProject,

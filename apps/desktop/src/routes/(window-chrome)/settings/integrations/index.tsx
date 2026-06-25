@@ -5,6 +5,7 @@ import IconLucideDatabase from "~icons/lucide/database";
 
 import "@total-typescript/ts-reset/filter-boolean";
 import { authStore } from "~/store";
+import { useI18n } from "~/i18n/I18nProvider";
 import { createSelectedOrganization } from "~/utils/organization-branding";
 import { commands } from "~/utils/tauri";
 import { apiClient, protectedHeaders } from "~/utils/web-api";
@@ -45,6 +46,7 @@ const GoogleDriveIcon = (props: { class?: string }) => (
 );
 
 export default function AppsTab() {
+	const { t } = useI18n();
 	const navigate = useNavigate();
 	const auth = authStore.createQuery();
 	const organizationSelection = createSelectedOrganization();
@@ -71,17 +73,15 @@ export default function AppsTab() {
 
 	const apps = [
 		{
-			name: "Google Drive",
-			description:
-				"Connect Google Drive for new shareable link uploads. Cap stores new videos in a private Cap folder in your Drive and continues serving them through Cap after normal access checks.",
+			nameKey: "settings.integrations.googleDrive.name",
+			descriptionKey: "settings.integrations.googleDrive.description",
 			icon: GoogleDriveIcon,
 			url: "/settings/integrations/google-drive-config",
 			pro: true,
 		},
 		{
-			name: "S3 Config",
-			description:
-				"Connect your own S3 bucket for complete control over your data storage. All new shareable link uploads will be automatically uploaded to your configured S3 bucket, ensuring you maintain complete ownership and control over your content. Perfect for organizations requiring data sovereignty and custom storage policies.",
+			nameKey: "settings.integrations.s3.name",
+			descriptionKey: "settings.integrations.s3.description",
 			icon: IconLucideDatabase,
 			url: "/settings/integrations/s3-config",
 			pro: true,
@@ -105,8 +105,8 @@ export default function AppsTab() {
 		<div class="cap-settings-page flex flex-col h-full custom-scroll">
 			<SettingsPageContent>
 				<Section
-					title="Integrations"
-					description="Configure integrations to extend Cap's functionality and connect with third-party services."
+					title={t("settings.integrations.indexTitle")}
+					description={t("settings.integrations.indexDesc")}
 				>
 					<div class="space-y-3">
 						<For each={apps}>
@@ -115,7 +115,7 @@ export default function AppsTab() {
 									<div class="flex justify-between items-center gap-3">
 										<div class="flex gap-2 items-center min-w-0">
 											<app.icon class="w-4 h-4 shrink-0 text-gray-12" />
-											<p class="text-[13px] text-gray-12">{app.name}</p>
+											<p class="text-[13px] text-gray-12">{t(app.nameKey)}</p>
 										</div>
 										<Button
 											size="sm"
@@ -124,14 +124,14 @@ export default function AppsTab() {
 											onClick={() => handleAppClick(app)}
 										>
 											{managedByOrganization()
-												? "Managed by your organization"
+												? t("settings.integrations.managedByOrg")
 												: app.pro && !isPro()
-													? "Upgrade to Pro"
-													: "Configure"}
+													? t("settings.integrations.upgradeToPro")
+													: t("settings.integrations.configure")}
 										</Button>
 									</div>
 									<p class="text-xs leading-snug text-gray-10">
-										{app.description}
+										{t(app.descriptionKey)}
 									</p>
 								</SectionCard>
 							)}

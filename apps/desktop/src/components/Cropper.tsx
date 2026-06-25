@@ -1559,10 +1559,12 @@ export function createCropOptionsMenuItems(options: {
 	snapToRatioEnabled: boolean;
 	onAspectSet: (aspect: Ratio | null) => void;
 	onSnapToRatioSet: (enabled: boolean) => void;
+	freeLabel?: string;
+	snapToRatiosLabel?: string;
 }) {
 	return [
 		{
-			text: "Free",
+			text: options.freeLabel ?? "Free",
 			checked: !options.aspect,
 			action: () => options.onAspectSet(null),
 		} satisfies CheckMenuItemOptions,
@@ -1576,7 +1578,7 @@ export function createCropOptionsMenuItems(options: {
 		),
 		{ item: "Separator" } satisfies PredefinedMenuItemOptions,
 		{
-			text: "Snap to ratios",
+			text: options.snapToRatiosLabel ?? "Snap to ratios",
 			checked: options.snapToRatioEnabled,
 			action: () => options.onSnapToRatioSet(!options.snapToRatioEnabled),
 		} satisfies CheckMenuItemOptions,

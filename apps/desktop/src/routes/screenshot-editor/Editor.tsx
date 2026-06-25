@@ -24,6 +24,7 @@ import {
 	type Ratio,
 } from "~/components/Cropper";
 import { composeEventHandlers } from "~/utils/composeEventHandlers";
+import { useI18n } from "~/i18n/I18nProvider";
 import IconCapCircleX from "~icons/cap/circle-x";
 import IconLucideMaximize from "~icons/lucide/maximize";
 import IconLucideRatio from "~icons/lucide/ratio";
@@ -193,6 +194,7 @@ export function Editor() {
 }
 
 function Dialogs() {
+	const { t } = useI18n();
 	const { dialog, setDialog, setProject, editorInstance } =
 		useScreenshotEditorContext();
 
@@ -300,6 +302,10 @@ function Dialogs() {
 										snapToRatioEnabled: snapToRatio(),
 										onAspectSet: setAspect,
 										onSnapToRatioSet: setSnapToRatioEnabled,
+										freeLabel: t("screenshotEditor.crop.free"),
+										snapToRatiosLabel: t(
+											"screenshotEditor.crop.snapToRatios",
+										),
 									});
 									const menu = await Menu.new({ items });
 									let pos: LogicalPosition | undefined;
@@ -343,7 +349,7 @@ function Dialogs() {
 										<Dialog.Header>
 											<div class="flex flex-row space-x-8">
 												<div class="flex flex-row items-center space-x-3 text-gray-11">
-													<span>Size</span>
+													<span>{t("screenshotEditor.crop.size")}</span>
 													<div class="w-13">
 														<BoundInput field="width" max={originalSize.x} />
 													</div>
@@ -353,7 +359,7 @@ function Dialogs() {
 													</div>
 												</div>
 												<div class="flex flex-row items-center space-x-3 text-gray-11">
-													<span>Position</span>
+													<span>{t("screenshotEditor.crop.position")}</span>
 													<div class="w-13">
 														<BoundInput field="x" />
 													</div>
@@ -403,7 +409,7 @@ function Dialogs() {
 														crop().height === originalSize.y
 													}
 												>
-													Full
+													{t("screenshotEditor.crop.full")}
 												</EditorButton>
 												<EditorButton
 													leftIcon={<IconCapCircleX />}
@@ -418,7 +424,7 @@ function Dialogs() {
 														crop().height === initialBounds.height
 													}
 												>
-													Reset
+													{t("screenshotEditor.crop.reset")}
 												</EditorButton>
 											</div>
 										</Dialog.Header>
@@ -448,7 +454,7 @@ function Dialogs() {
 														>
 															<img
 																class="w-full h-full pointer-events-none select-none shadow-sm"
-																alt="screenshot"
+																alt={t("screenshotEditor.crop.screenshotAlt")}
 																src={convertFileSrc(imagePath())}
 															/>
 														</Cropper>
@@ -473,7 +479,7 @@ function Dialogs() {
 													setDialog({ open: false });
 												}}
 											>
-												Save
+												{t("screenshotEditor.crop.save")}
 											</Button>
 										</Dialog.Footer>
 									</>

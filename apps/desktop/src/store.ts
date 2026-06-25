@@ -29,7 +29,7 @@ const store = () => {
 	return _store;
 };
 
-function declareStore<T extends object>(name: string, defaults?: T) {
+export function declareStore<T extends object>(name: string, defaults?: T) {
 	const withDefaults = (value?: T) =>
 		defaults ? { ...defaults, ...(value ?? {}) } : value;
 	const get = async () => {

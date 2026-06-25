@@ -56,6 +56,7 @@ import {
 } from "~/components/Cropper";
 import ModeSelect from "~/components/ModeSelect";
 import SelectionHint from "~/components/selection-hint";
+import { useI18n } from "~/i18n/I18nProvider";
 import { authStore, generalSettingsStore } from "~/store";
 import { getCameraWindow } from "~/utils/camera-window";
 import { createDevicesQuery } from "~/utils/devices";
@@ -88,10 +89,6 @@ import {
 
 const MIN_SIZE = { width: 150, height: 150 };
 const MIN_SCREENSHOT_SIZE = { width: 1, height: 1 };
-
-const capitalize = (str: string) => {
-	return str.charAt(0).toUpperCase() + str.slice(1);
-};
 
 const findCamera = (cameras: CameraInfo[], id?: DeviceOrModelID | null) => {
 	if (!id) return undefined;
@@ -171,6 +168,7 @@ function useOptions() {
 }
 
 function Inner() {
+	const { t } = useI18n();
 	const [params] = useSearchParams<{
 		displayId: DisplayId;
 		isHoveredDisplay: string;
@@ -329,9 +327,9 @@ function Inner() {
 				<div class="relative w-screen h-screen flex flex-col items-center justify-center bg-black/70">
 					<div class="absolute inset-0 bg-black/60 -z-10" />
 					<div class="flex flex-col items-center text-white mb-4">
-						<span class="mb-2 text-3xl font-semibold">Camera Only</span>
+						<span class="mb-2 text-3xl font-semibold">{t("targetSelect.cameraOnly")}</span>
 						<span class="text-xs text-gray-11">
-							Record using only your camera and microphone
+							{t("targetSelect.cameraOnlyDesc")}
 						</span>
 					</div>
 					<div class="flex justify-center w-full px-6 mb-4">
@@ -676,7 +674,7 @@ function Inner() {
 												});
 											}}
 										>
-											Adjust recording area
+											{t("targetSelect.adjustRecordingArea")}
 										</Button>
 										<ShowCapFreeWarning
 											isInstantMode={options.mode === "instant"}
@@ -917,7 +915,7 @@ function Inner() {
 						e.stopPropagation();
 						const items = [
 							{
-								text: "Reset selection",
+								text: t("targetSelect.menu.resetSelection"),
 								action: () => {
 									cropperRef?.reset();
 									setAspect(null);
@@ -1081,7 +1079,7 @@ function Inner() {
 									await commands.closeTargetSelectOverlays();
 								} catch (e) {
 									const message = e instanceof Error ? e.message : String(e);
-									toast.error(`Failed to take screenshot: ${message}`);
+									toast.error(t("targetSelect.failedScreenshot", { message }));
 									console.error("Failed to take screenshot", e);
 								}
 							}
@@ -1129,13 +1127,19 @@ function Inner() {
 									<Show when={!isValid()}>
 										<div class="flex flex-col gap-1 items-center p-2.5 my-2 rounded-xl border min-w-fit w-fit bg-red-2 shadow-xs border-red-4 text-sm">
 											<p>
-												Minimum size is {minSize().width} x {minSize().height}
+												{t("targetSelect.minimumSize", {
+											width: minSize().width,
+											height: minSize().height,
+										})}
 											</p>
 											<small>
 												<code>
 													{crop().width} x {crop().height}
 												</code>{" "}
-												is too small
+												{t("targetSelect.tooSmall", {
+												width: crop().width,
+												height: crop().height,
+											})}
 											</small>
 										</div>
 									</Show>
@@ -1187,6 +1191,7 @@ function calculateBackoffWithJitter(
 const WS_STALL_TIMEOUT_MS = 2000;
 
 function CameraPreviewInline() {
+	const { t } = useI18n();
 	const { rawOptions } = useRecordingOptions();
 	const [state, setState] = makePersisted(
 		createStore<CameraWindowState>(getDefaultCameraWindowState()),
@@ -1470,7 +1475,7 @@ function CameraPreviewInline() {
 						fallback={
 							<div class="flex flex-col items-center gap-2 text-center px-4">
 								<IconCapCamera class="size-8 text-gray-9 mb-2" />
-								<div class="text-sm text-gray-11">Please select a camera</div>
+								<div class="text-sm text-gray-11">{t("targetSelect.cameraInline.pleaseSelectCamera")}</div>
 							</div>
 						}
 					>
@@ -1479,14 +1484,14 @@ function CameraPreviewInline() {
 							fallback={
 								<div class="flex flex-col items-center gap-2 text-center px-4">
 									<div class="text-sm text-red-400">
-										Camera connection failed
+										{t("targetSelect.cameraInline.connectionFailed")}
 									</div>
 									<button
 										type="button"
 										onClick={handleRetryConnection}
 										class="text-xs text-blue-400 hover:text-blue-300 underline"
 									>
-										Try again
+										{t("targetSelect.cameraInline.tryAgain")}
 									</button>
 								</div>
 							}
@@ -1500,7 +1505,7 @@ function CameraPreviewInline() {
 								style={canvasStyle()}
 							/>
 							<Show when={!hasFrame()}>
-								<div class="text-sm text-gray-11">Loading camera...</div>
+								<div class="text-sm text-gray-11">{t("targetSelect.cameraInline.loadingCamera")}</div>
 							</Show>
 						</Show>
 					</Show>
@@ -1524,6 +1529,7 @@ function RecordingControls(props: {
 	onRecordingStart?: () => void;
 	onClose?: () => void;
 }) {
+	const { t } = useI18n();
 	const auth = authStore.createQuery();
 	const { setOptions, rawOptions } = useRecordingOptions();
 
@@ -1585,7 +1591,7 @@ function RecordingControls(props: {
 		await Menu.new({
 			items: [
 				await CheckMenuItem.new({
-					text: "Studio Mode",
+					text: t("targetSelect.menu.studioMode"),
 					action: () => {
 						setOptions("mode", "studio");
 						commands.setRecordingMode("studio");
@@ -1593,7 +1599,7 @@ function RecordingControls(props: {
 					checked: rawOptions.mode === "studio",
 				}),
 				await CheckMenuItem.new({
-					text: "Instant Mode",
+					text: t("targetSelect.menu.instantMode"),
 					action: () => {
 						setOptions("mode", "instant");
 						commands.setRecordingMode("instant");
@@ -1601,7 +1607,7 @@ function RecordingControls(props: {
 					checked: rawOptions.mode === "instant",
 				}),
 				await CheckMenuItem.new({
-					text: "Screenshot Mode",
+					text: t("targetSelect.menu.screenshotMode"),
 					action: () => {
 						setOptions("mode", "screenshot");
 						commands.setRecordingMode("screenshot");
@@ -1613,24 +1619,24 @@ function RecordingControls(props: {
 
 	const countdownItems = async () => [
 		await CheckMenuItem.new({
-			text: "Off",
+			text: t("targetSelect.menu.countdownOff"),
 			action: () => generalSettingsStore.set({ recordingCountdown: 0 }),
 			checked:
 				!generalSetings.data?.recordingCountdown ||
 				generalSetings.data?.recordingCountdown === 0,
 		}),
 		await CheckMenuItem.new({
-			text: "3 seconds",
+			text: t("targetSelect.menu.countdown3"),
 			action: () => generalSettingsStore.set({ recordingCountdown: 3 }),
 			checked: generalSetings.data?.recordingCountdown === 3,
 		}),
 		await CheckMenuItem.new({
-			text: "5 seconds",
+			text: t("targetSelect.menu.countdown5"),
 			action: () => generalSettingsStore.set({ recordingCountdown: 5 }),
 			checked: generalSetings.data?.recordingCountdown === 5,
 		}),
 		await CheckMenuItem.new({
-			text: "10 seconds",
+			text: t("targetSelect.menu.countdown10"),
 			action: () => generalSettingsStore.set({ recordingCountdown: 10 }),
 			checked: generalSetings.data?.recordingCountdown === 10,
 		}),
@@ -1640,7 +1646,7 @@ function RecordingControls(props: {
 		return await Menu.new({
 			items: [
 				await MenuItem.new({
-					text: "Recording Countdown",
+					text: t("targetSelect.menu.recordingCountdown"),
 					enabled: false,
 				}),
 				...(await countdownItems()),
@@ -1729,7 +1735,7 @@ function RecordingControls(props: {
 										await commands.closeTargetSelectOverlays();
 									} catch (e) {
 										const message = e instanceof Error ? e.message : String(e);
-										toast.error(`Failed to take screenshot: ${message}`);
+										toast.error(t("targetSelect.failedScreenshot", { message }));
 										console.error("Failed to take screenshot", e);
 									}
 									return;
@@ -1764,14 +1770,18 @@ function RecordingControls(props: {
 									<span class="text-[0.95rem] font-medium text-white text-nowrap">
 										{(() => {
 											if (rawOptions.mode === "instant" && !auth.data)
-												return "Sign In To Use";
+												return t("targetSelect.controls.signInToUse");
 											if (rawOptions.mode === "screenshot")
-												return "Take Screenshot";
-											return "Start Recording";
+												return t("targetSelect.controls.takeScreenshot");
+											return t("targetSelect.controls.startRecording");
 										})()}
 									</span>
 									<span class="text-[11px] flex items-center text-nowrap gap-1 transition-opacity duration-200 text-white/90 font-light -mt-0.5">
-										{`${capitalize(rawOptions.mode)} Mode`}
+										{rawOptions.mode === "studio"
+											? t("targetSelect.menu.studioMode")
+											: rawOptions.mode === "instant"
+												? t("targetSelect.menu.instantMode")
+												: t("targetSelect.menu.screenshotMode")}
 									</span>
 								</div>
 							</div>
@@ -1846,8 +1856,15 @@ function RecordingControls(props: {
 				>
 					<IconCapInfo class="opacity-70 will-change-transform size-3" />
 					<p class="text-sm text-white drop-shadow-md">
-						<span class="opacity-70">What is </span>
-						<span class="font-medium">{capitalize(rawOptions.mode)} Mode</span>?
+						<span class="opacity-70">{t("targetSelect.controls.whatIsModePrefix")} </span>
+						<span class="font-medium">
+							{rawOptions.mode === "studio"
+								? t("targetSelect.menu.studioMode")
+								: rawOptions.mode === "instant"
+									? t("targetSelect.menu.instantMode")
+									: t("targetSelect.menu.screenshotMode")}
+						</span>
+						{t("targetSelect.controls.whatIsModeSuffix")}
 					</p>
 				</div>
 			</div>
@@ -1856,18 +1873,19 @@ function RecordingControls(props: {
 }
 
 function ShowCapFreeWarning(props: { isInstantMode: boolean }) {
+	const { t } = useI18n();
 	const auth = authStore.createQuery();
 
 	return (
 		<Suspense>
 			<Show when={props.isInstantMode && auth.data?.plan?.upgraded === false}>
 				<p class="text-sm text-center max-w-64 text-gray-3 mt-3">
-					Instant Mode recordings are limited to 5 mins,{" "}
+					{t("targetSelect.controls.instantLimitedPrefix")}{" "}
 					<button
 						class="underline font-bold text-gray-3"
 						onClick={() => commands.showWindow("Upgrade")}
 					>
-						Upgrade to Pro
+						{t("targetSelect.controls.upgradeToPro")}
 					</button>
 				</p>
 			</Show>

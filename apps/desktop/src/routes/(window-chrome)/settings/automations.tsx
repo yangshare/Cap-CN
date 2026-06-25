@@ -15,9 +15,9 @@ import { createStore, produce } from "solid-js/store";
 import { Dynamic } from "solid-js/web";
 import toast from "solid-toast";
 import { Toggle } from "~/components/Toggle";
+import { useI18n } from "~/i18n/I18nProvider";
 import { presetsStore } from "~/store";
 import {
-	ACTION_LABELS,
 	type Action,
 	type ActionType,
 	type AutomationRecordingMode,
@@ -27,7 +27,6 @@ import {
 	actionAppliesToTrigger,
 	type CaptureTargetKind,
 	type ClipboardSource,
-	CONDITION_LABELS,
 	type Condition,
 	conditionAppliesToTrigger,
 	createEmptyRule,
@@ -39,7 +38,6 @@ import {
 	getAutomations,
 	type MatchMode,
 	setAutomations,
-	TRIGGER_LABELS,
 	type Trigger,
 	testAutomation,
 } from "~/utils/automations";
@@ -112,58 +110,58 @@ const TRIGGER_ICONS: Record<Trigger, IconComponent> = {
 	recordingDeleted: IconLucideTrash2,
 };
 
-const TRIGGER_PHRASE: Record<Trigger, string> = {
-	screenshotTaken: "Screenshot taken",
-	studioRecordingFinished: "Studio recording ends",
-	instantRecordingFinished: "Instant recording ends",
-	recordingStarted: "Recording starts",
-	uploadCompleted: "Upload completes",
-	videoImported: "Video imported",
-	recordingDeleted: "Recording deleted",
+const TRIGGER_PHRASE_KEY: Record<Trigger, string> = {
+	screenshotTaken: "screenshotTaken",
+	studioRecordingFinished: "studioRecordingFinished",
+	instantRecordingFinished: "instantRecordingFinished",
+	recordingStarted: "recordingStarted",
+	uploadCompleted: "uploadCompleted",
+	videoImported: "videoImported",
+	recordingDeleted: "recordingDeleted",
 };
 
-const ACTION_SHORT: Record<ActionType, string> = {
-	copyToClipboard: "Copy to clipboard",
-	saveToLocation: "Save to folder",
-	export: "Export",
-	upload: "Upload & copy link",
-	revealInFileManager: "Reveal in file manager",
-	openFile: "Open file",
-	recognizeTextToClipboard: "Copy text (OCR)",
-	notify: "Notify",
-	openEditor: "Open editor",
-	skipEditor: "Skip editor",
-	applyPreset: "Apply preset",
-	runCommand: "Run command",
-	webhook: "Send webhook",
-	deleteLocalFiles: "Delete local files",
+const ACTION_SHORT_KEY: Record<ActionType, string> = {
+	copyToClipboard: "copyToClipboard",
+	saveToLocation: "saveToLocation",
+	export: "export",
+	upload: "upload",
+	revealInFileManager: "revealInFileManager",
+	openFile: "openFile",
+	recognizeTextToClipboard: "recognizeTextToClipboard",
+	notify: "notify",
+	openEditor: "openEditor",
+	skipEditor: "skipEditor",
+	applyPreset: "applyPreset",
+	runCommand: "runCommand",
+	webhook: "webhook",
+	deleteLocalFiles: "deleteLocalFiles",
 };
 
-const TRIGGER_NOUN: Record<Trigger, string> = {
-	screenshotTaken: "Screenshot",
-	studioRecordingFinished: "Studio recording",
-	instantRecordingFinished: "Instant recording",
-	recordingStarted: "Recording start",
-	uploadCompleted: "Upload",
-	videoImported: "Import",
-	recordingDeleted: "Deletion",
+const TRIGGER_NOUN_KEY: Record<Trigger, string> = {
+	screenshotTaken: "screenshotTaken",
+	studioRecordingFinished: "studioRecordingFinished",
+	instantRecordingFinished: "instantRecordingFinished",
+	recordingStarted: "recordingStarted",
+	uploadCompleted: "uploadCompleted",
+	videoImported: "videoImported",
+	recordingDeleted: "recordingDeleted",
 };
 
-const ACTION_NOUN: Record<ActionType, string> = {
-	copyToClipboard: "Clipboard",
-	saveToLocation: "Folder",
-	export: "Export",
-	upload: "Upload",
-	revealInFileManager: "Reveal",
-	openFile: "Open",
-	recognizeTextToClipboard: "Text",
-	notify: "Notify",
-	openEditor: "Editor",
-	skipEditor: "Skip editor",
-	applyPreset: "Preset",
-	runCommand: "Command",
-	webhook: "Webhook",
-	deleteLocalFiles: "Delete",
+const ACTION_NOUN_KEY: Record<ActionType, string> = {
+	copyToClipboard: "copyToClipboard",
+	saveToLocation: "saveToLocation",
+	export: "export",
+	upload: "upload",
+	revealInFileManager: "revealInFileManager",
+	openFile: "openFile",
+	recognizeTextToClipboard: "recognizeTextToClipboard",
+	notify: "notify",
+	openEditor: "openEditor",
+	skipEditor: "skipEditor",
+	applyPreset: "applyPreset",
+	runCommand: "runCommand",
+	webhook: "webhook",
+	deleteLocalFiles: "deleteLocalFiles",
 };
 
 const FPS_PRESETS = [15, 30, 60] as const;
@@ -177,10 +175,9 @@ const RESOLUTION_PRESETS = [
 
 type Template = {
 	id: string;
-	name: string;
-	description: string;
+	nameKey: string;
 	icon: IconComponent;
-	build: () => AutomationRule;
+	build: (name: string) => AutomationRule;
 };
 
 function buildRule(opts: {
@@ -204,103 +201,94 @@ function buildRule(opts: {
 const TEMPLATES: Template[] = [
 	{
 		id: "copy-screenshot",
-		name: "Auto-copy new screenshots to clipboard",
-		description: "Snap a screenshot and it's right there, ready to paste.",
+		nameKey: "settings.automations.templates.copyScreenshot",
 		icon: IconLucideCopy,
-		build: () =>
+		build: (name) =>
 			buildRule({
-				name: "Auto-copy new screenshots to clipboard",
+				name,
 				trigger: "screenshotTaken",
 				actions: [{ type: "copyToClipboard", source: "raw" }],
 			}),
 	},
 	{
 		id: "ocr-screenshot",
-		name: "Pull the text out of screenshots",
-		description: "Cap reads the text in your screenshot and copies it for you.",
+		nameKey: "settings.automations.templates.ocrScreenshot",
 		icon: IconLucideScanText,
-		build: () =>
+		build: (name) =>
 			buildRule({
-				name: "Pull the text out of screenshots",
+				name,
 				trigger: "screenshotTaken",
 				actions: [{ type: "recognizeTextToClipboard" }],
 			}),
 	},
 	{
 		id: "save-screenshot",
-		name: "Tuck screenshots into a folder",
-		description: "Send every new screenshot straight to a folder you pick.",
+		nameKey: "settings.automations.templates.saveScreenshot",
 		icon: IconLucideFolderDown,
-		build: () =>
+		build: (name) =>
 			buildRule({
-				name: "Tuck screenshots into a folder",
+				name,
 				trigger: "screenshotTaken",
 				actions: [defaultActionForType("saveToLocation")],
 			}),
 	},
 	{
 		id: "reveal-screenshot",
-		name: "Jump to each new screenshot",
-		description: "Pop open every screenshot in Finder the moment you take it.",
+		nameKey: "settings.automations.templates.revealScreenshot",
 		icon: IconLucideFolderOpen,
-		build: () =>
+		build: (name) =>
 			buildRule({
-				name: "Jump to each new screenshot",
+				name,
 				trigger: "screenshotTaken",
 				actions: [{ type: "revealInFileManager" }],
 			}),
 	},
 	{
 		id: "export-studio",
-		name: "Auto-export when you finish recording",
-		description: "Render an MP4 the second a Studio recording wraps up.",
+		nameKey: "settings.automations.templates.exportStudio",
 		icon: IconLucideFilm,
-		build: () =>
+		build: (name) =>
 			buildRule({
-				name: "Auto-export when you finish recording",
+				name,
 				trigger: "studioRecordingFinished",
 				actions: [defaultActionForType("export")],
 			}),
 	},
 	{
 		id: "upload-share",
-		name: "Upload and grab the share link",
-		description:
-			"Finish a recording and the link is waiting on your clipboard.",
+		nameKey: "settings.automations.templates.uploadShare",
 		icon: IconLucideLink,
-		build: () =>
+		build: (name) =>
 			buildRule({
-				name: "Upload and grab the share link",
+				name,
 				trigger: "studioRecordingFinished",
 				actions: [defaultActionForType("upload")],
 			}),
 	},
 	{
 		id: "notify-upload",
-		name: "Ping me when an upload is ready",
-		description: "Get a gentle desktop nudge once your recording is shareable.",
+		nameKey: "settings.automations.templates.notifyUpload",
 		icon: IconLucideBell,
-		build: () =>
+		build: (name) =>
 			buildRule({
-				name: "Ping me when an upload is ready",
+				name,
 				trigger: "uploadCompleted",
 				actions: [
 					{
 						type: "notify",
 						titleTemplate: "Cap",
-						bodyTemplate: "Your recording is ready to share.",
+						bodyTemplate: "",
 					},
 				],
 			}),
 	},
 	{
 		id: "webhook-share",
-		name: "Tell Slack when you share something",
-		description: "Send the share link to Slack, Discord, or your own webhook.",
+		nameKey: "settings.automations.templates.webhookShare",
 		icon: IconLucideWebhook,
-		build: () =>
+		build: (name) =>
 			buildRule({
-				name: "Tell Slack when you share something",
+				name,
 				trigger: "instantRecordingFinished",
 				actions: [
 					{
@@ -315,22 +303,29 @@ const TEMPLATES: Template[] = [
 	},
 ];
 
-function ruleSummary(rule: AutomationRule): string {
-	const trigger = TRIGGER_PHRASE[rule.trigger];
-	if (rule.actions.length === 0) return `${trigger} → no actions yet`;
-	const actions = rule.actions.map((a) => ACTION_SHORT[a.type]).join(", ");
-	return `${trigger} → ${actions}`;
+type TranslateFn = (path: string, variables?: Record<string, string | number>) => string;
+
+function ruleSummary(rule: AutomationRule, t: TranslateFn): string {
+	const trigger = t(`settings.automations.triggers.${TRIGGER_PHRASE_KEY[rule.trigger]}`);
+	if (rule.actions.length === 0) return t("settings.automations.ruleNoActions", { trigger });
+	const actions = rule.actions
+		.map((a) => t(`settings.automations.actionShort.${ACTION_SHORT_KEY[a.type]}`))
+		.join(", ");
+	return t("settings.automations.summaryTemplate", { trigger, actions });
 }
 
-function autoRuleName(rule: AutomationRule): string {
-	const trigger = TRIGGER_NOUN[rule.trigger];
+function autoRuleName(rule: AutomationRule, t: TranslateFn): string {
+	const trigger = t(`settings.automations.triggerNouns.${TRIGGER_NOUN_KEY[rule.trigger]}`);
 	const first = rule.actions[0];
-	if (!first) return `${trigger} automation`;
-	return `${trigger} → ${ACTION_NOUN[first.type]}`;
+	if (!first) return t("settings.automations.ruleAutoName", { trigger });
+	return t("settings.automations.ruleAutoNameAction", {
+		trigger,
+		action: t(`settings.automations.actionNouns.${ACTION_NOUN_KEY[first.type]}`),
+	});
 }
 
-function ruleDisplayName(rule: AutomationRule): string {
-	return rule.name.trim() || autoRuleName(rule);
+function ruleDisplayName(rule: AutomationRule, t: TranslateFn): string {
+	return rule.name.trim() || autoRuleName(rule, t);
 }
 
 const inputClass =
@@ -438,6 +433,7 @@ function RowButton(props: {
 }
 
 export default function AutomationsSettings() {
+	const { t } = useI18n();
 	const [store, setStore] = createStore<AutomationsStore>({
 		version: 1,
 		rules: [],
@@ -466,7 +462,7 @@ export default function AutomationsSettings() {
 			});
 		} catch (e) {
 			console.error("Failed to save automations", e);
-			toast.error("Failed to save automations");
+			toast.error(t("settings.automations.toastSaveFailed"));
 		}
 	};
 
@@ -483,8 +479,9 @@ export default function AutomationsSettings() {
 	};
 
 	const addFromTemplate = (template: Template) => {
-		addRule(template.build());
-		toast.success(`Added "${template.name}"`);
+		const name = t(`${template.nameKey}.name`);
+		addRule(template.build(name));
+		toast.success(t("settings.automations.toastAdded", { name }));
 	};
 
 	const removeRule = (id: string) => {
@@ -501,17 +498,18 @@ export default function AutomationsSettings() {
 			setTestReports(ruleId, report);
 			const unsupported = report.actionChecks.filter((c) => !c.supported);
 			if (unsupported.length === 0) {
-				toast.success("All actions supported on this device");
+				toast.success(t("settings.automations.toastAllSupported"));
 			} else {
 				toast(
-					`${unsupported.length} action(s) not supported here: ${unsupported
-						.map((c) => c.actionType)
-						.join(", ")}`,
+					t("settings.automations.toastUnsupported", {
+						count: unsupported.length,
+						actions: unsupported.map((c) => c.actionType).join(", "),
+					}),
 				);
 			}
 		} catch (e) {
 			console.error("Failed to test automation", e);
-			toast.error("Failed to test automation");
+			toast.error(t("settings.automations.toastTestFailed"));
 		}
 	};
 
@@ -519,8 +517,8 @@ export default function AutomationsSettings() {
 		<div class="cap-settings-page flex flex-col h-full custom-scroll">
 			<SettingsPageContent>
 				<Section
-					title="Automations"
-					description="Run actions automatically when something happens in Cap. Rules are shared with the Cap CLI."
+					title={t("settings.automations.title")}
+					description={t("settings.automations.desc")}
 				>
 					<Suspense
 						fallback={<div class="h-24 rounded-xl bg-gray-3 animate-pulse" />}
@@ -558,8 +556,8 @@ export default function AutomationsSettings() {
 				</Section>
 
 				<Section
-					title="Templates"
-					description="One click to add a ready-made automation. Tweak anything afterwards."
+					title={t("settings.automations.templatesTitle")}
+					description={t("settings.automations.templatesDesc")}
 				>
 					<div class="grid grid-cols-2 gap-2.5">
 						<For each={TEMPLATES}>
@@ -578,16 +576,16 @@ export default function AutomationsSettings() {
 }
 
 function EmptyState(props: { onCreate: () => void }) {
+	const { t } = useI18n();
 	return (
 		<SectionCard padded>
 			<div class="flex flex-col gap-2 items-center py-6 text-center">
 				<div class="flex justify-center items-center mb-1 rounded-full size-11 bg-gray-3 text-gray-10">
 					<IconLucideZap class="size-5" />
 				</div>
-				<p class="text-[13px] font-medium text-gray-12">No automations yet</p>
+				<p class="text-[13px] font-medium text-gray-12">{t("settings.automations.emptyTitle")}</p>
 				<p class="max-w-xs text-xs leading-relaxed text-gray-10">
-					Pick a template below to get started in one click, or build your own
-					from scratch.
+					{t("settings.automations.emptyDesc")}
 				</p>
 				<Button
 					variant="gray"
@@ -596,7 +594,7 @@ function EmptyState(props: { onCreate: () => void }) {
 					class="flex gap-1.5 items-center mt-1"
 				>
 					<IconLucidePlus class="size-3.5" />
-					Start from scratch
+					{t("settings.automations.startFromScratch")}
 				</Button>
 			</div>
 		</SectionCard>
@@ -604,6 +602,7 @@ function EmptyState(props: { onCreate: () => void }) {
 }
 
 function AddRuleButton(props: { onClick: () => void }) {
+	const { t } = useI18n();
 	return (
 		<button
 			type="button"
@@ -611,12 +610,13 @@ function AddRuleButton(props: { onClick: () => void }) {
 			class="flex gap-1.5 justify-center items-center py-2.5 w-full text-[13px] rounded-xl border border-dashed transition-colors border-gray-4 text-gray-10 hover:text-gray-12 hover:border-gray-6 hover:bg-gray-2"
 		>
 			<IconLucidePlus class="size-4" />
-			New automation
+			{t("settings.automations.newAutomation")}
 		</button>
 	);
 }
 
 function TemplateCard(props: { template: Template; onAdd: () => void }) {
+	const { t } = useI18n();
 	return (
 		<button
 			type="button"
@@ -628,10 +628,10 @@ function TemplateCard(props: { template: Template; onAdd: () => void }) {
 			</div>
 			<div class="flex-1 min-w-0">
 				<p class="text-[13px] font-medium text-gray-12">
-					{props.template.name}
+					{t(`${props.template.nameKey}.name`)}
 				</p>
 				<p class="mt-0.5 text-[11px] leading-snug text-gray-10">
-					{props.template.description}
+					{t(`${props.template.nameKey}.description`)}
 				</p>
 			</div>
 		</button>
@@ -647,6 +647,7 @@ function RuleCard(props: {
 	onRemove: () => void;
 	onTest: () => void;
 }) {
+	const { t } = useI18n();
 	return (
 		<SectionCard class="overflow-hidden">
 			<div class="flex gap-3 items-center p-2.5">
@@ -672,11 +673,11 @@ function RuleCard(props: {
 							props.rule.enabled ? "text-gray-12" : "text-gray-10",
 						)}
 					>
-						{ruleDisplayName(props.rule)}
+						{ruleDisplayName(props.rule, t)}
 					</p>
 					<Show when={props.rule.name.trim()}>
 						<p class="text-[11px] truncate text-gray-10">
-							{ruleSummary(props.rule)}
+							{ruleSummary(props.rule, t)}
 						</p>
 					</Show>
 				</button>
@@ -692,7 +693,7 @@ function RuleCard(props: {
 				<button
 					type="button"
 					onClick={props.onToggleExpand}
-					title={props.expanded ? "Collapse" : "Edit"}
+					title={props.expanded ? t("settings.automations.collapse") : t("settings.automations.edit")}
 					class="flex justify-center items-center rounded-lg transition-colors size-7 text-gray-10 hover:text-gray-12 hover:bg-gray-3"
 				>
 					<IconLucideChevronDown
@@ -726,33 +727,37 @@ function RuleEditorBody(props: {
 	onRemove: () => void;
 	onTest: () => void;
 }) {
+	const { t } = useI18n();
 	const hasDangerous = () =>
 		props.rule.actions.some((a) => DANGEROUS_ACTIONS.includes(a.type));
 
 	const addCondition = () =>
 		props.onChange((r) => {
-			const type =
-				ALL_CONDITION_TYPES.find((t) =>
-					conditionAppliesToTrigger(t, r.trigger),
+			const condType =
+				ALL_CONDITION_TYPES.find((ct) =>
+					conditionAppliesToTrigger(ct, r.trigger),
 				) ?? "captureTargetIs";
-			r.conditions.push(defaultConditionForType(type));
+			r.conditions.push(defaultConditionForType(condType));
 		});
 
 	const addAction = () =>
 		props.onChange((r) => {
 			const type = actionAppliesToTrigger("copyToClipboard", r.trigger)
 				? "copyToClipboard"
-				: (ALL_ACTION_TYPES.find((t) => actionAppliesToTrigger(t, r.trigger)) ??
+				: (ALL_ACTION_TYPES.find((at) => actionAppliesToTrigger(at, r.trigger)) ??
 					"notify");
 			r.actions.push(defaultActionForType(type));
 		});
 
+	const triggerLabel = (trigger: Trigger) =>
+		t(`settings.automations.triggerLabels.${TRIGGER_PHRASE_KEY[trigger]}`);
+
 	return (
 		<div class="p-4 space-y-5">
-			<Field label="Name">
+			<Field label={t("settings.automations.fieldName")}>
 				<TextInput
 					value={props.rule.name}
-					placeholder={autoRuleName(props.rule)}
+					placeholder={autoRuleName(props.rule, t)}
 					onInput={(v) =>
 						props.onChange((r) => {
 							r.name = v;
@@ -762,12 +767,12 @@ function RuleEditorBody(props: {
 			</Field>
 
 			<div class="space-y-1.5">
-				<GroupLabel>When this happens</GroupLabel>
+				<GroupLabel>{t("settings.automations.whenThisHappens")}</GroupLabel>
 				<SelectInput<Trigger>
 					value={props.rule.trigger}
-					options={ALL_TRIGGERS.map((t) => ({
-						value: t,
-						label: TRIGGER_LABELS[t],
+					options={ALL_TRIGGERS.map((tgr) => ({
+						value: tgr,
+						label: triggerLabel(tgr),
 					}))}
 					onChange={(v) =>
 						props.onChange((r) => {
@@ -779,15 +784,15 @@ function RuleEditorBody(props: {
 
 			<div class="space-y-2">
 				<div class="flex justify-between items-center">
-					<GroupLabel>Only run if</GroupLabel>
+					<GroupLabel>{t("settings.automations.onlyRunIf")}</GroupLabel>
 					<div class="flex gap-2 items-center">
 						<Show when={props.rule.conditions.length > 1}>
 							<SelectInput<MatchMode>
 								class="w-28"
 								value={props.rule.matchMode}
 								options={[
-									{ value: "all", label: "Match all" },
-									{ value: "any", label: "Match any" },
+									{ value: "all", label: t("settings.automations.matchAll") },
+									{ value: "any", label: t("settings.automations.matchAny") },
 								]}
 								onChange={(v) =>
 									props.onChange((r) => {
@@ -797,7 +802,7 @@ function RuleEditorBody(props: {
 							/>
 						</Show>
 						<Button variant="gray" size="xs" onClick={addCondition}>
-							Add condition
+							{t("settings.automations.addCondition")}
 						</Button>
 					</div>
 				</div>
@@ -805,7 +810,9 @@ function RuleEditorBody(props: {
 					when={props.rule.conditions.length > 0}
 					fallback={
 						<p class="text-xs text-gray-9">
-							Runs for every {TRIGGER_PHRASE[props.rule.trigger].toLowerCase()}.
+							{t("settings.automations.runsForEvery", {
+								trigger: t(`settings.automations.triggers.${TRIGGER_PHRASE_KEY[props.rule.trigger]}`).toLowerCase(),
+							})}
 						</p>
 					}
 				>
@@ -837,9 +844,9 @@ function RuleEditorBody(props: {
 
 			<div class="space-y-2">
 				<div class="flex justify-between items-center">
-					<GroupLabel>Then do this</GroupLabel>
+					<GroupLabel>{t("settings.automations.thenDoThis")}</GroupLabel>
 					<Button variant="gray" size="xs" onClick={addAction}>
-						Add action
+						{t("settings.automations.addAction")}
 					</Button>
 				</div>
 				<div class="space-y-2">
@@ -878,15 +885,14 @@ function RuleEditorBody(props: {
 
 			<Show when={hasDangerous()}>
 				<p class="text-xs leading-relaxed text-amber-600 dark:text-amber-500">
-					This automation runs commands or sends network requests. Only use
-					values you trust — they execute automatically with your permissions.
+					{t("settings.automations.dangerousNote")}
 				</p>
 			</Show>
 
 			<div class="flex justify-between items-center pt-4 border-t border-gray-3 -mx-4 px-4 -mb-4 pb-4 mt-2">
-				<span title="Checks which actions are supported on this device. Does not run the automation.">
+				<span title={t("settings.automations.checkCompatTitle")}>
 					<Button variant="gray" size="xs" onClick={props.onTest}>
-						Check compatibility
+						{t("settings.automations.checkCompat")}
 					</Button>
 				</span>
 				<button
@@ -895,7 +901,7 @@ function RuleEditorBody(props: {
 					class="flex gap-1.5 items-center px-2 h-6 text-[0.75rem] rounded-lg transition-colors text-gray-10 hover:text-red-500 hover:bg-red-500/10"
 				>
 					<IconLucideTrash2 class="size-3.5" />
-					Delete
+					{t("settings.automations.delete")}
 				</button>
 			</div>
 		</div>
@@ -909,32 +915,37 @@ function ConditionRow(props: {
 	onReplace: (next: Condition) => void;
 	onRemove: () => void;
 }) {
+	const { t } = useI18n();
 	const applies = () =>
 		conditionAppliesToTrigger(props.condition.type, props.trigger);
+
+	const conditionLabel = (type: Condition["type"]) =>
+		t(`settings.automations.conditionLabels.${type}`);
+
 	return (
 		<div class="space-y-1">
 			<div class="flex gap-2 items-start p-2.5 rounded-lg border border-gray-3 bg-gray-1">
 				<div class="grid flex-1 grid-cols-2 gap-2 min-w-0">
 					<SelectInput<Condition["type"]>
 						value={props.condition.type}
-						options={ALL_CONDITION_TYPES.map((t) => ({
-							value: t,
-							label: CONDITION_LABELS[t],
+						options={ALL_CONDITION_TYPES.map((ct) => ({
+							value: ct,
+							label: conditionLabel(ct),
 						}))}
-						onChange={(t) => props.onReplace(defaultConditionForType(t))}
+						onChange={(v) => props.onReplace(defaultConditionForType(v))}
 					/>
 					<ConditionValue
 						condition={props.condition}
 						onChange={props.onChange}
 					/>
 				</div>
-				<RowButton onClick={props.onRemove} title="Remove condition">
+				<RowButton onClick={props.onRemove} title={t("settings.automations.removeCondition")}>
 					<IconLucideX class="size-4" />
 				</RowButton>
 			</div>
 			<Show when={!applies()}>
 				<p class="px-1 text-[11px] text-amber-600 dark:text-amber-500">
-					This condition never matches for the selected trigger.
+					{t("settings.automations.conditionNoMatch")}
 				</p>
 			</Show>
 		</div>
@@ -945,6 +956,7 @@ function ConditionValue(props: {
 	condition: Condition;
 	onChange: (fn: (condition: Condition) => void) => void;
 }) {
+	const { t } = useI18n();
 	const c = props.condition;
 	switch (c.type) {
 		case "captureTargetIs":
@@ -952,9 +964,9 @@ function ConditionValue(props: {
 				<SelectInput<CaptureTargetKind>
 					value={c.target}
 					options={[
-						{ value: "display", label: "Display" },
-						{ value: "window", label: "Window" },
-						{ value: "area", label: "Area" },
+						{ value: "display", label: t("settings.automations.captureTargets.display") },
+						{ value: "window", label: t("settings.automations.captureTargets.window") },
+						{ value: "area", label: t("settings.automations.captureTargets.area") },
 					]}
 					onChange={(v) =>
 						props.onChange((cond) => {
@@ -968,8 +980,8 @@ function ConditionValue(props: {
 				<SelectInput<AutomationRecordingMode>
 					value={c.mode}
 					options={[
-						{ value: "studio", label: "Studio" },
-						{ value: "instant", label: "Instant" },
+						{ value: "studio", label: t("settings.automations.recordingModes.studio") },
+						{ value: "instant", label: t("settings.automations.recordingModes.instant") },
 					]}
 					onChange={(v) =>
 						props.onChange((cond) => {
@@ -998,7 +1010,7 @@ function ConditionValue(props: {
 			return (
 				<TextInput
 					value={c.pattern}
-					placeholder="e.g. Slack"
+					placeholder={t("settings.automations.placeholdersWindowTitle")}
 					onInput={(v) =>
 						props.onChange((cond) => {
 							if (cond.type === "windowTitleContains") cond.pattern = v;
@@ -1010,7 +1022,7 @@ function ConditionValue(props: {
 			return (
 				<TextInput
 					value={c.id}
-					placeholder="Organization ID"
+					placeholder={t("settings.automations.placeholderOrgId")}
 					onInput={(v) =>
 						props.onChange((cond) => {
 							if (cond.type === "organizationIs") cond.id = v;
@@ -1032,50 +1044,55 @@ function ActionRow(props: {
 	onRemove: () => void;
 	onMove: (dir: -1 | 1) => void;
 }) {
+	const { t } = useI18n();
 	const applies = () =>
 		actionAppliesToTrigger(props.action.type, props.trigger);
+
+	const actionLabel = (type: ActionType) =>
+		t(`settings.automations.actionLabels.${type}`);
+
 	return (
 		<div class="p-3 space-y-3 rounded-lg border border-gray-3 bg-gray-1">
 			<div class="flex gap-2 items-center">
 				<SelectInput<ActionType>
 					class="flex-1"
 					value={props.action.type}
-					options={ALL_ACTION_TYPES.map((t) => ({
-						value: t,
-						label: ACTION_LABELS[t],
+					options={ALL_ACTION_TYPES.map((at) => ({
+						value: at,
+						label: actionLabel(at),
 					}))}
-					onChange={(t) => props.onReplace(defaultActionForType(t))}
+					onChange={(v) => props.onReplace(defaultActionForType(v))}
 				/>
 				<Show when={props.support === false}>
 					<span
-						title="Not supported on this device; will be skipped"
+						title={t("settings.automations.actionSkippedTitle")}
 						class="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-500"
 					>
-						Skipped here
+						{t("settings.automations.actionSkipped")}
 					</span>
 				</Show>
 				<RowButton
 					onClick={() => props.onMove(-1)}
-					title="Move up"
+					title={t("settings.automations.moveUp")}
 					disabled={props.isFirst}
 				>
 					<IconLucideChevronUp class="size-4" />
 				</RowButton>
 				<RowButton
 					onClick={() => props.onMove(1)}
-					title="Move down"
+					title={t("settings.automations.moveDown")}
 					disabled={props.isLast}
 				>
 					<IconLucideChevronDown class="size-4" />
 				</RowButton>
-				<RowButton onClick={props.onRemove} title="Remove action">
+				<RowButton onClick={props.onRemove} title={t("settings.automations.removeAction")}>
 					<IconLucideX class="size-4" />
 				</RowButton>
 			</div>
 			<ActionParams action={props.action} onChange={props.onChange} />
 			<Show when={!applies()}>
 				<p class="text-[11px] text-amber-600 dark:text-amber-500">
-					This action has no effect for the selected trigger.
+					{t("settings.automations.actionNoEffect")}
 				</p>
 			</Show>
 		</div>
@@ -1086,16 +1103,17 @@ function ActionParams(props: {
 	action: Action;
 	onChange: (fn: (action: Action) => void) => void;
 }) {
+	const { t } = useI18n();
 	const a = props.action;
 	switch (a.type) {
 		case "copyToClipboard":
 			return (
-				<Field label="Source">
+				<Field label={t("settings.automations.fieldSource")}>
 					<SelectInput<ClipboardSource>
 						value={a.source}
 						options={[
-							{ value: "raw", label: "Original capture" },
-							{ value: "rendered", label: "Edited / rendered" },
+							{ value: "raw", label: t("settings.automations.sourceOriginal") },
+							{ value: "rendered", label: t("settings.automations.sourceRendered") },
 						]}
 						onChange={(v) =>
 							props.onChange((act) => {
@@ -1108,11 +1126,11 @@ function ActionParams(props: {
 		case "saveToLocation":
 			return (
 				<div class="flex gap-2">
-					<Field label="Folder">
+					<Field label={t("settings.automations.fieldFolder")}>
 						<div class="flex gap-2">
 							<TextInput
 								value={a.dir}
-								placeholder="/Users/you/Screenshots"
+								placeholder={t("settings.automations.placeholderSaveToLocation")}
 								onInput={(v) =>
 									props.onChange((act) => {
 										if (act.type === "saveToLocation") act.dir = v;
@@ -1130,11 +1148,11 @@ function ActionParams(props: {
 										});
 								}}
 							>
-								Browse
+								{t("settings.automations.browse")}
 							</Button>
 						</div>
 					</Field>
-					<Field label="Filename template (optional)">
+					<Field label={t("settings.automations.fieldFilename")}>
 						<TextInput
 							value={a.filenameTemplate ?? ""}
 							placeholder="{date}-{window}"
@@ -1153,7 +1171,7 @@ function ActionParams(props: {
 		case "upload":
 			return (
 				<div class="space-y-2">
-					<Field label="Organization ID (optional)">
+					<Field label={t("settings.automations.fieldOrgId")}>
 						<TextInput
 							value={a.organizationId ?? ""}
 							onInput={(v) =>
@@ -1175,7 +1193,7 @@ function ActionParams(props: {
 									})
 								}
 							/>
-							Copy link to clipboard
+							{t("settings.automations.copyLinkToClipboard")}
 						</label>
 						<label class="flex gap-2 items-center text-[13px] text-gray-12">
 							<Toggle
@@ -1187,7 +1205,7 @@ function ActionParams(props: {
 									})
 								}
 							/>
-							Open in browser
+							{t("settings.automations.openInBrowser")}
 						</label>
 					</div>
 				</div>
@@ -1196,10 +1214,10 @@ function ActionParams(props: {
 			return (
 				<div class="space-y-2">
 					<div class="flex gap-2">
-						<Field label="Program">
+						<Field label={t("settings.automations.fieldProgram")}>
 							<TextInput
 								value={a.program}
-								placeholder="/usr/local/bin/my-script"
+								placeholder={t("settings.automations.placeholderRunCommand")}
 								onInput={(v) =>
 									props.onChange((act) => {
 										if (act.type === "runCommand") act.program = v;
@@ -1207,7 +1225,7 @@ function ActionParams(props: {
 								}
 							/>
 						</Field>
-						<Field label="Arguments (space-separated)">
+						<Field label={t("settings.automations.fieldArgs")}>
 							<TextInput
 								value={a.args.join(" ")}
 								onInput={(v) =>
@@ -1229,7 +1247,7 @@ function ActionParams(props: {
 								})
 							}
 						/>
-						Run through shell
+						{t("settings.automations.runThroughShell")}
 					</label>
 				</div>
 			);
@@ -1237,10 +1255,10 @@ function ActionParams(props: {
 			return (
 				<div class="space-y-2">
 					<div class="flex gap-2">
-						<Field label="URL">
+						<Field label={t("settings.automations.fieldUrl")}>
 							<TextInput
 								value={a.url}
-								placeholder="https://hooks.slack.com/..."
+								placeholder={t("settings.automations.placeholderWebhookUrl")}
 								onInput={(v) =>
 									props.onChange((act) => {
 										if (act.type === "webhook") act.url = v;
@@ -1248,7 +1266,7 @@ function ActionParams(props: {
 								}
 							/>
 						</Field>
-						<Field label="Method">
+						<Field label={t("settings.automations.fieldMethod")}>
 							<SelectInput<string>
 								class="w-28"
 								value={a.method}
@@ -1265,7 +1283,7 @@ function ActionParams(props: {
 							/>
 						</Field>
 					</div>
-					<Field label="Body template (optional)">
+					<Field label={t("settings.automations.fieldBody")}>
 						<TextInput
 							value={a.bodyTemplate ?? ""}
 							placeholder='{"text":"{share_link}"}'
@@ -1282,7 +1300,7 @@ function ActionParams(props: {
 		case "notify":
 			return (
 				<div class="flex gap-2">
-					<Field label="Title">
+					<Field label={t("settings.automations.fieldTitle")}>
 						<TextInput
 							value={a.titleTemplate}
 							onInput={(v) =>
@@ -1292,7 +1310,7 @@ function ActionParams(props: {
 							}
 						/>
 					</Field>
-					<Field label="Body">
+					<Field label={t("settings.automations.fieldBody2")}>
 						<TextInput
 							value={a.bodyTemplate}
 							onInput={(v) =>
@@ -1306,7 +1324,7 @@ function ActionParams(props: {
 			);
 		case "applyPreset":
 			return (
-				<Field label="Preset">
+				<Field label={t("settings.automations.fieldPreset")}>
 					<PresetSelect
 						value={a.name}
 						onChange={(name) =>
@@ -1327,10 +1345,11 @@ function PresetSelect(props: {
 	allowNone?: boolean;
 	onChange: (name: string) => void;
 }) {
+	const { t } = useI18n();
 	const presets = presetsStore.createQuery();
 	const names = () => presets.data?.presets.map((p) => p.name) ?? [];
 	const options = () => [
-		...(props.allowNone ? [{ value: "", label: "None" }] : []),
+		...(props.allowNone ? [{ value: "", label: t("settings.automations.presetNone") }] : []),
 		...names().map((n) => ({ value: n, label: n })),
 	];
 
@@ -1339,7 +1358,7 @@ function PresetSelect(props: {
 			when={props.allowNone || names().length > 0}
 			fallback={
 				<p class="px-0.5 py-1.5 text-[11px] text-gray-9">
-					No presets yet — create one in the editor first.
+					{t("settings.automations.noPresets")}
 				</p>
 			}
 		>
@@ -1356,6 +1375,7 @@ function ExportParams(props: {
 	action: Extract<Action, { type: "export" }>;
 	onChange: (fn: (action: Action) => void) => void;
 }) {
+	const { t } = useI18n();
 	const a = props.action;
 	const updateProfile = (fn: (p: typeof a.profile) => void) =>
 		props.onChange((act) => {
@@ -1372,7 +1392,7 @@ function ExportParams(props: {
 	return (
 		<div class="space-y-2">
 			<div class="flex gap-2">
-				<Field label="Format">
+				<Field label={t("settings.automations.fieldFormat")}>
 					<SelectInput<ExportFormat>
 						value={a.profile.format}
 						options={[
@@ -1387,7 +1407,7 @@ function ExportParams(props: {
 						}
 					/>
 				</Field>
-				<Field label="Resolution">
+				<Field label={t("settings.automations.fieldResolution")}>
 					<SelectInput
 						value={resolutionValue()}
 						options={RESOLUTION_PRESETS.map((r) => ({
@@ -1405,12 +1425,12 @@ function ExportParams(props: {
 				</Field>
 			</div>
 			<div class="flex gap-2">
-				<Field label="Frame rate">
+				<Field label={t("settings.automations.fieldFrameRate")}>
 					<SelectInput
 						value={String(a.profile.fps)}
 						options={FPS_PRESETS.map((f) => ({
 							value: String(f),
-							label: `${f} FPS`,
+							label: t("settings.automations.fpsLabel", { n: f }),
 						}))}
 						onChange={(v) =>
 							updateProfile((p) => {
@@ -1420,14 +1440,14 @@ function ExportParams(props: {
 					/>
 				</Field>
 				<Show when={a.profile.format === "mp4"}>
-					<Field label="Compression">
+					<Field label={t("settings.automations.fieldCompression")}>
 						<SelectInput<ExportCompression>
 							value={a.profile.compression ?? "web"}
 							options={[
-								{ value: "maximum", label: "Maximum" },
-								{ value: "social", label: "Social" },
-								{ value: "web", label: "Web" },
-								{ value: "potato", label: "Potato" },
+								{ value: "maximum", label: t("settings.automations.compression.maximum") },
+								{ value: "social", label: t("settings.automations.compression.social") },
+								{ value: "web", label: t("settings.automations.compression.web") },
+								{ value: "potato", label: t("settings.automations.compression.potato") },
 							]}
 							onChange={(v) =>
 								updateProfile((p) => {
@@ -1438,7 +1458,7 @@ function ExportParams(props: {
 					</Field>
 				</Show>
 			</div>
-			<Field label="Destination folder (optional, blank = project folder)">
+			<Field label={t("settings.automations.fieldDestination")}>
 				<div class="flex gap-2">
 					<TextInput
 						value={
@@ -1446,7 +1466,7 @@ function ExportParams(props: {
 								? ""
 								: a.destination.customPath.dir
 						}
-						placeholder="Project folder"
+						placeholder={t("settings.automations.placeholderProjectFolder")}
 						onInput={(v) =>
 							props.onChange((act) => {
 								if (act.type === "export")
@@ -1467,7 +1487,7 @@ function ExportParams(props: {
 								});
 						}}
 					>
-						Browse
+						{t("settings.automations.browse")}
 					</Button>
 				</div>
 			</Field>

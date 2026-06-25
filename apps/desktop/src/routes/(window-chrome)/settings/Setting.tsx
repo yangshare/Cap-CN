@@ -2,6 +2,7 @@ import { cx } from "cva";
 import type { JSX, ParentProps } from "solid-js";
 import { Show } from "solid-js";
 import { Toggle } from "~/components/Toggle";
+import { useI18n } from "~/i18n/I18nProvider";
 
 export function SettingsPageContent(props: ParentProps<{ class?: string }>) {
 	return (
@@ -19,6 +20,7 @@ export function Section(
 		pro?: boolean;
 	}>,
 ) {
+	const { t } = useI18n();
 	return (
 		<section class="space-y-2.5">
 			<header class="flex justify-between items-end gap-3 px-1">
@@ -29,7 +31,7 @@ export function Section(
 						</h3>
 						<Show when={props.pro}>
 							<span class="text-[10px] font-medium uppercase tracking-wide px-1.5 py-0.5 rounded-md bg-blue-9 text-white">
-								Pro
+								{t("common.proBadge")}
 							</span>
 						</Show>
 					</div>

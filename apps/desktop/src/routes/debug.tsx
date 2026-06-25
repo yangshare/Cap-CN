@@ -4,9 +4,11 @@ import { getVersion } from "@tauri-apps/api/app";
 import * as dialog from "@tauri-apps/plugin-dialog";
 import { check } from "@tauri-apps/plugin-updater";
 import { createSignal, createUniqueId, For, onMount } from "solid-js";
+import { useI18n } from "~/i18n/I18nProvider";
 import { commands } from "~/utils/tauri";
 
 export default function Debug() {
+	const { t } = useI18n();
 	const navigate = useNavigate();
 	const [version, setVersion] = createSignal<string>("");
 	const [updateStatus, setUpdateStatus] = createSignal<string>("");
@@ -19,33 +21,37 @@ export default function Debug() {
 
 	const checkForUpdates = async () => {
 		setIsChecking(true);
-		setUpdateStatus("Checking...");
+		setUpdateStatus(t("debug.updates.checking"));
 		try {
 			const update = await check();
 			if (update) {
-				setUpdateStatus(`Update available: v${update.version}`);
+				setUpdateStatus(t("debug.updates.updateAvailable", { version: update.version }));
 			} else {
-				setUpdateStatus("No update available");
+				setUpdateStatus(t("debug.updates.noUpdateAvailable"));
 			}
 		} catch (e) {
-			setUpdateStatus(`Error: ${e}`);
+			setUpdateStatus(t("debug.updates.error", { error: String(e) }));
 		}
 		setIsChecking(false);
 	};
 
 	const simulateUpdatePopup = async () => {
 		const fakeVersion = "99.0.0";
-		setUpdateStatus(`Simulating update to v${fakeVersion}...`);
+		setUpdateStatus(t("debug.updates.simulating", { version: fakeVersion }));
 
 		const shouldUpdate = await dialog.confirm(
-			`Version ${fakeVersion} of Cap is available, would you like to install it?`,
-			{ title: "Update Cap", okLabel: "Update", cancelLabel: "Ignore" },
+			t("debug.updates.dialog.message", { version: fakeVersion }),
+			{
+				title: t("debug.updates.dialog.title"),
+				okLabel: t("debug.updates.dialog.update"),
+				cancelLabel: t("debug.updates.dialog.ignore"),
+			},
 		);
 
 		if (shouldUpdate) {
 			navigate("/update");
 		} else {
-			setUpdateStatus("User declined update");
+			setUpdateStatus(t("debug.updates.userDeclined"));
 		}
 	};
 
@@ -58,13 +64,13 @@ export default function Debug() {
 
 	return (
 		<main class="w-full h-full bg-gray-2 text-(--text-primary) p-4">
-			<h2 class="text-2xl font-bold">Debug Windows</h2>
+			<h2 class="text-2xl font-bold">{t("debug.windows.title")}</h2>
 			<div class="p-2 mb-4">
 				<button
 					class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-sm"
 					onClick={() => commands.showWindow("Onboarding")}
 				>
-					Show Onboarding Window
+					{t("debug.windows.showOnboarding")}
 				</button>
 				<button
 					class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-sm"
@@ -72,14 +78,14 @@ export default function Debug() {
 						commands.showWindow({ InProgressRecording: { countdown: 3 } })
 					}
 				>
-					Show Recording Controls Window
+					{t("debug.windows.showRecordingControls")}
 				</button>
 			</div>
 
-			<h2 class="text-2xl font-bold mt-4">Updates</h2>
+			<h2 class="text-2xl font-bold mt-4">{t("debug.updates.title")}</h2>
 			<div class="p-2 mb-4">
 				<p class="mb-2 text-sm text-(--text-secondary)">
-					Current version: v{version()}
+					{t("debug.updates.currentVersion", { version: version() })}
 				</p>
 				<div class="flex flex-row gap-2 items-center">
 					<button
@@ -87,26 +93,26 @@ export default function Debug() {
 						onClick={checkForUpdates}
 						disabled={isChecking()}
 					>
-						Check for Updates
+						{t("debug.updates.checkForUpdates")}
 					</button>
 					<button
 						class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-sm"
 						onClick={() => navigate("/update")}
 					>
-						Go to Update Page
+						{t("debug.updates.goToUpdatePage")}
 					</button>
 					<button
 						class="bg-purple-500 hover:bg-purple-600 text-white font-medium py-2 px-4 rounded-sm disabled:opacity-50"
 						onClick={simulateUpdatePopup}
 						disabled={isChecking()}
 					>
-						Simulate Update Flow
+						{t("debug.updates.simulateUpdateFlow")}
 					</button>
 				</div>
 				{updateStatus() && <p class="mt-2 text-sm">{updateStatus()}</p>}
 			</div>
 
-			<h2 class="text-2xl font-bold mt-4">Fail Points</h2>
+			<h2 class="text-2xl font-bold mt-4">{t("debug.failPoints.title")}</h2>
 			<ul class="p-2">
 				<For each={orderedFails()}>
 					{(fail) => {

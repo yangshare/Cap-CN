@@ -4,6 +4,7 @@ import { cx } from "cva";
 import { Show, type ValidComponent } from "solid-js";
 import IconCapChevronDown from "~icons/cap/chevron-down";
 import IconCapCorners from "~icons/cap/corners";
+import { useI18n } from "~/i18n/I18nProvider";
 import { useScreenshotEditorContext } from "../context";
 import {
 	EditorButton,
@@ -15,12 +16,10 @@ import {
 } from "../ui";
 
 export type CornerRoundingType = "rounded" | "squircle";
-const CORNER_STYLE_OPTIONS = [
-	{ name: "Squircle", value: "squircle" },
-	{ name: "Rounded", value: "rounded" },
-] satisfies Array<{ name: string; value: CornerRoundingType }>;
+const CORNER_STYLE_VALUES: CornerRoundingType[] = ["squircle", "rounded"];
 
 export function RoundingPopover() {
+	const { t } = useI18n();
 	const { project, setProject, activePopover, setActivePopover } =
 		useScreenshotEditorContext();
 
@@ -42,13 +41,15 @@ export function RoundingPopover() {
 					setActivePopover(activePopover() === "rounding" ? null : "rounding")
 				}
 				leftIcon={<IconCapCorners class="size-4" />}
-				tooltipText="Corner Rounding"
+				tooltipText={t("screenshotEditor.popovers.cornerRounding")}
 			/>
 			<Popover.Portal>
 				<Popover.Content class="z-50 w-[240px] overflow-hidden rounded-xl border border-gray-3 bg-gray-1 shadow-xl animate-in fade-in zoom-in-95 p-4">
 					<div class="flex flex-col gap-4">
 						<div class="flex flex-col gap-2">
-							<span class="text-xs font-medium text-gray-11">Rounding</span>
+							<span class="text-xs font-medium text-gray-11">
+								{t("screenshotEditor.popovers.rounding")}
+							</span>
 							<Slider
 								value={[project.background.rounding]}
 								onChange={handleRoundingChange}
@@ -59,7 +60,7 @@ export function RoundingPopover() {
 							/>
 						</div>
 						<CornerStyleSelect
-							label="Corner Style"
+							label={t("screenshotEditor.popovers.cornerStyle")}
 							value={project.background.roundingType || "squircle"}
 							onChange={(v) => setProject("background", "roundingType", v)}
 						/>
@@ -75,6 +76,9 @@ function CornerStyleSelect(props: {
 	value: CornerRoundingType;
 	onChange: (value: CornerRoundingType) => void;
 }) {
+	const { t } = useI18n();
+	const styleLabel = (value: CornerRoundingType) =>
+		t(`screenshotEditor.popovers.cornerStyles.${value}`);
 	return (
 		<div class="flex flex-col gap-1.5">
 			<Show when={props.label}>
@@ -84,14 +88,10 @@ function CornerStyleSelect(props: {
 					</span>
 				)}
 			</Show>
-			<KSelect<{ name: string; value: CornerRoundingType }>
-				options={CORNER_STYLE_OPTIONS}
-				optionValue="value"
-				optionTextValue="name"
-				value={CORNER_STYLE_OPTIONS.find(
-					(option) => option.value === props.value,
-				)}
-				onChange={(option) => option && props.onChange(option.value)}
+			<KSelect<CornerRoundingType>
+				options={CORNER_STYLE_VALUES}
+				value={props.value}
+				onChange={(option) => option && props.onChange(option)}
 				disallowEmptySelection
 				itemComponent={(itemProps) => (
 					<MenuItem<typeof KSelect.Item>
@@ -99,17 +99,14 @@ function CornerStyleSelect(props: {
 						item={itemProps.item}
 					>
 						<KSelect.ItemLabel class="flex-1">
-							{itemProps.item.rawValue.name}
+							{styleLabel(itemProps.item.rawValue)}
 						</KSelect.ItemLabel>
 					</MenuItem>
 				)}
 			>
 				<KSelect.Trigger class="flex flex-row gap-2 items-center px-2 w-full h-8 rounded-lg transition-colors bg-gray-3 disabled:text-gray-11">
-					<KSelect.Value<{
-						name: string;
-						value: CornerRoundingType;
-					}> class="flex-1 text-sm text-left truncate text-(--gray-500) font-normal">
-						{(state) => <span>{state.selectedOption().name}</span>}
+					<KSelect.Value<CornerRoundingType> class="flex-1 text-sm text-left truncate text-(--gray-500) font-normal">
+						{(state) => <span>{styleLabel(state.selectedOption())}</span>}
 					</KSelect.Value>
 					<KSelect.Icon<ValidComponent>
 						as={(iconProps) => (

@@ -18,6 +18,7 @@ import {
 } from "solid-js";
 import { createStore } from "solid-js/store";
 import { generalSettingsStore } from "~/store";
+import { useI18n } from "~/i18n/I18nProvider";
 import {
 	isPermissionGranted as isPermitted,
 	requestAndVerifyPermission,
@@ -60,93 +61,73 @@ type ModeId = "instant" | "studio" | "screenshot";
 
 interface ModeDetail {
 	id: ModeId;
-	title: string;
-	tagline: string;
-	description: string;
+	titleKey: string;
+	taglineKey: string;
+	descriptionKey: string;
+	featuresKey: string;
 	icon: typeof IconCapInstant;
-	features: string[];
 }
 
 const modes: ModeDetail[] = [
 	{
 		id: "instant",
-		title: "Instant Mode",
-		tagline: "Record & share in seconds",
-		description:
-			"Your recording uploads as you capture. Stop recording and instantly get a shareable link — no waiting.",
+		titleKey: "onboarding.modes.instant.title",
+		taglineKey: "onboarding.modes.instant.tagline",
+		descriptionKey: "onboarding.modes.instant.description",
+		featuresKey: "onboarding.modes.instant.features",
 		icon: IconCapInstant,
-		features: [
-			"Instant shareable link",
-			"Background uploading",
-			"AI transcription & summary",
-			"Browser-based playback",
-		],
 	},
 	{
 		id: "studio",
-		title: "Studio Mode",
-		tagline: "Professional editing tools",
-		description:
-			"Record in full quality locally, then use the built-in editor to add backgrounds, padding, cursor effects, and more.",
+		titleKey: "onboarding.modes.studio.title",
+		taglineKey: "onboarding.modes.studio.tagline",
+		descriptionKey: "onboarding.modes.studio.description",
+		featuresKey: "onboarding.modes.studio.features",
 		icon: IconCapFilmCut,
-		features: [
-			"Full quality local recording",
-			"Built-in editor & effects",
-			"Custom backgrounds & padding",
-			"Export or share when ready",
-		],
 	},
 	{
 		id: "screenshot",
-		title: "Screenshot Mode",
-		tagline: "Capture & beautify instantly",
-		description:
-			"Take screenshots with a single hotkey, add annotations and beautiful backgrounds, then share or copy instantly.",
+		titleKey: "onboarding.modes.screenshot.title",
+		taglineKey: "onboarding.modes.screenshot.tagline",
+		descriptionKey: "onboarding.modes.screenshot.description",
+		featuresKey: "onboarding.modes.screenshot.features",
 		icon: IconCapScreenshot,
-		features: [
-			"Instant hotkey capture",
-			"Annotation & drawing tools",
-			"Beautiful backgrounds",
-			"Copy, save, or share",
-		],
 	},
 ];
 
 type SetupPermission = {
-	name: string;
+	nameKey: string;
 	key: OSPermission;
-	description: string;
+	descriptionKey: string;
 	requiresManualGrant: boolean;
 	optional?: boolean;
 };
 
 const setupPermissions: readonly SetupPermission[] = [
 	{
-		name: "Screen Recording",
+		nameKey: "onboarding.permissions.items.screenRecording.name",
 		key: "screenRecording",
-		description:
-			"Click Grant to allow when macOS asks, or pick Cap in System Settings if needed. Restart the app after allowing screen recording.",
+		descriptionKey:
+			"onboarding.permissions.items.screenRecording.description",
 		requiresManualGrant: false,
 	},
 	{
-		name: "Accessibility",
+		nameKey: "onboarding.permissions.items.accessibility.name",
 		key: "accessibility",
-		description:
-			"During recording, Cap collects mouse activity locally to generate automatic zoom in segments.",
+		descriptionKey: "onboarding.permissions.items.accessibility.description",
 		requiresManualGrant: false,
 	},
 	{
-		name: "Microphone",
+		nameKey: "onboarding.permissions.items.microphone.name",
 		key: "microphone",
-		description: "This permission is required to record audio in your Caps.",
+		descriptionKey: "onboarding.permissions.items.microphone.description",
 		requiresManualGrant: false,
 		optional: true,
 	},
 	{
-		name: "Camera",
+		nameKey: "onboarding.permissions.items.camera.name",
 		key: "camera",
-		description:
-			"This permission is required to record your camera in your Caps.",
+		descriptionKey: "onboarding.permissions.items.camera.description",
 		requiresManualGrant: false,
 		optional: true,
 	},
@@ -303,6 +284,7 @@ function OnboardingAmbientBackdrop() {
 }
 
 export default function OnboardingPage() {
+	const { t } = useI18n();
 	const isMacOS = createMemo(() => ostype() === "macos");
 	const minStep = createMemo(() => (isMacOS() ? 0 : 1));
 
@@ -413,9 +395,9 @@ export default function OnboardingPage() {
 	});
 
 	const nextLabel = () => {
-		if (permissionsOnly()) return "Continue to Cap";
-		if (step() === totalSteps() - 1) return "Start Using Cap";
-		return "Continue";
+		if (permissionsOnly()) return t("onboarding.nav.continueToCap");
+		if (step() === totalSteps() - 1) return t("onboarding.nav.startUsingCap");
+		return t("onboarding.nav.next");
 	};
 
 	const nextDisabled = () => isMacOS() && step() === 0 && !permsGranted();
@@ -574,6 +556,7 @@ function StepNavigation(props: {
 	showSkipOnboarding?: boolean;
 	onSkip?: () => void;
 }) {
+	const { t } = useI18n();
 	return (
 		<div
 			data-tauri-drag-region="false"
@@ -589,7 +572,7 @@ function StepNavigation(props: {
 							class="flex items-center gap-1.5 text-[13px] text-gray-10 hover:text-gray-12 transition-colors duration-200"
 						>
 							<IconLucideArrowLeft class="size-3.5" />
-							Back
+							{t("onboarding.nav.back")}
 						</button>
 					</Show>
 				</div>
@@ -634,14 +617,14 @@ function StepNavigation(props: {
 								onClick={() => props.onSkip?.()}
 								class="text-[11px] text-gray-9 hover:text-gray-11 transition-colors duration-200 py-0.5"
 							>
-								Skip onboarding
+								{t("onboarding.nav.skipOnboarding")}
 							</button>
 						</Show>
 					</div>
 				</div>
 			</div>
 			<span class="text-[10px] text-gray-8 tabular-nums">
-				Press Enter ↵ or use ← → arrow keys
+				{t("onboarding.nav.keyHint")}
 			</span>
 		</div>
 	);
@@ -676,13 +659,14 @@ function StepPanel(props: {
 }
 
 function ModesOverviewStep(props: { active: boolean }) {
+	const { t } = useI18n();
 	const [visible, setVisible] = createSignal(false);
 
 	createEffect(() => {
 		if (props.active) {
 			setVisible(false);
-			const t = setTimeout(() => setVisible(true), 100);
-			onCleanup(() => clearTimeout(t));
+			const timer = setTimeout(() => setVisible(true), 100);
+			onCleanup(() => clearTimeout(timer));
 		} else {
 			setVisible(false);
 		}
@@ -697,11 +681,10 @@ function ModesOverviewStep(props: { active: boolean }) {
 				)}
 			>
 				<h2 class="text-2xl font-bold text-gray-12 tracking-tight">
-					One app, every workflow
+					{t("onboarding.modesOverview.title")}
 				</h2>
 				<p class="text-[14px] text-gray-10 leading-relaxed">
-					Whether you need speed, studio quality, or a quick screenshot — Cap
-					has a mode for it.
+					{t("onboarding.modesOverview.desc")}
 				</p>
 			</div>
 
@@ -723,10 +706,10 @@ function ModesOverviewStep(props: { active: boolean }) {
 							</div>
 							<div class="text-center">
 								<div class="text-sm font-semibold text-gray-12">
-									{mode.title}
+									{t(mode.titleKey)}
 								</div>
 								<div class="text-[11px] text-gray-9 mt-1 leading-snug">
-									{mode.tagline}
+									{t(mode.taglineKey)}
 								</div>
 							</div>
 						</div>
@@ -742,13 +725,18 @@ function ModeDetailStep(props: {
 	active: boolean;
 	children: JSX.Element;
 }) {
+	const { t } = useI18n();
 	const [visible, setVisible] = createSignal(false);
+
+	const features = createMemo(() =>
+		Array.from({ length: 4 }, (_, i) => t(`${props.mode.featuresKey}.${i}`)),
+	);
 
 	createEffect(() => {
 		if (props.active) {
 			setVisible(false);
-			const t = setTimeout(() => setVisible(true), 80);
-			onCleanup(() => clearTimeout(t));
+			const timer = setTimeout(() => setVisible(true), 80);
+			onCleanup(() => clearTimeout(timer));
 		} else {
 			setVisible(false);
 		}
@@ -768,19 +756,21 @@ function ModeDetailStep(props: {
 							<props.mode.icon class="size-5 invert dark:invert-0" />
 						</div>
 						<div>
-							<h3 class="text-lg font-bold text-gray-12">{props.mode.title}</h3>
+							<h3 class="text-lg font-bold text-gray-12">
+								{t(props.mode.titleKey)}
+							</h3>
 							<p class="text-[11px] font-medium text-gray-9">
-								{props.mode.tagline}
+								{t(props.mode.taglineKey)}
 							</p>
 						</div>
 					</div>
 
 					<p class="text-[13px] text-gray-10 leading-relaxed">
-						{props.mode.description}
+						{t(props.mode.descriptionKey)}
 					</p>
 
 					<div class="flex flex-col gap-2.5">
-						<For each={props.mode.features}>
+						<For each={features()}>
 							{(feature, index) => (
 								<div
 									class="flex items-center gap-2.5 transition-all duration-500"
@@ -811,6 +801,7 @@ function ModeDetailStep(props: {
 }
 
 function ToggleStep(props: { active: boolean }) {
+	const { t } = useI18n();
 	const [visible, setVisible] = createSignal(false);
 	const [activeMode, setActiveMode] = createSignal(0);
 	const [userClicked, setUserClicked] = createSignal(false);
@@ -824,12 +815,12 @@ function ToggleStep(props: { active: boolean }) {
 			setVisible(false);
 			setActiveMode(0);
 			setUserClicked(false);
-			const t = setTimeout(() => setVisible(true), 100);
+			const timer = setTimeout(() => setVisible(true), 100);
 			const interval = setInterval(() => {
 				if (!userClicked()) setActiveMode((prev) => (prev + 1) % 3);
 			}, 2500);
 			onCleanup(() => {
-				clearTimeout(t);
+				clearTimeout(timer);
 				clearInterval(interval);
 			});
 		} else {
@@ -854,10 +845,10 @@ function ToggleStep(props: { active: boolean }) {
 				)}
 			>
 				<h2 class="text-2xl font-bold text-gray-12 tracking-tight">
-					Switch modes anytime
+					{t("onboarding.toggleStep.title")}
 				</h2>
 				<p class="text-[14px] text-gray-10 leading-relaxed">
-					Toggle between modes with a single click from the main Cap window.
+					{t("onboarding.toggleStep.desc")}
 				</p>
 			</div>
 
@@ -934,7 +925,7 @@ function ToggleStep(props: { active: boolean }) {
 								style={{ width: `${CIRCLE}px` }}
 								onClick={() => handleModeClick(index())}
 							>
-								{mode.title}
+								{t(mode.titleKey)}
 							</span>
 						)}
 					</For>
@@ -945,36 +936,37 @@ function ToggleStep(props: { active: boolean }) {
 }
 
 function ShortcutsStep(props: { active: boolean }) {
+	const { t } = useI18n();
 	const [visible, setVisible] = createSignal(false);
+
+	const settingsAreas = [
+		{
+			titleKey: "onboarding.shortcutsStep.areas.keyboardShortcuts.title",
+			descKey: "onboarding.shortcutsStep.areas.keyboardShortcuts.desc",
+		},
+		{
+			titleKey: "onboarding.shortcutsStep.areas.customS3.title",
+			descKey: "onboarding.shortcutsStep.areas.customS3.desc",
+		},
+		{
+			titleKey: "onboarding.shortcutsStep.areas.customDomain.title",
+			descKey: "onboarding.shortcutsStep.areas.customDomain.desc",
+		},
+		{
+			titleKey: "onboarding.shortcutsStep.areas.recordingPrefs.title",
+			descKey: "onboarding.shortcutsStep.areas.recordingPrefs.desc",
+		},
+	];
 
 	createEffect(() => {
 		if (props.active) {
 			setVisible(false);
-			const t = setTimeout(() => setVisible(true), 100);
-			onCleanup(() => clearTimeout(t));
+			const timer = setTimeout(() => setVisible(true), 100);
+			onCleanup(() => clearTimeout(timer));
 		} else {
 			setVisible(false);
 		}
 	});
-
-	const settingsAreas = [
-		{
-			title: "Keyboard Shortcuts",
-			desc: "Global hotkeys for recording, screenshots, and switching modes",
-		},
-		{
-			title: "Custom S3 Storage",
-			desc: "Connect your own S3-compatible bucket for full control over your recordings",
-		},
-		{
-			title: "Custom Domain",
-			desc: "Use your own domain for shareable links instead of cap.link",
-		},
-		{
-			title: "Recording Preferences",
-			desc: "FPS, quality, countdown timer, cursor effects, and more",
-		},
-	];
 
 	return (
 		<div class="flex flex-col items-center justify-center min-h-full px-12 gap-6">
@@ -988,11 +980,10 @@ function ShortcutsStep(props: { active: boolean }) {
 					<IconCapSettings class="size-5 text-gray-11" />
 				</div>
 				<h2 class="text-2xl font-bold text-gray-12 tracking-tight">
-					Make Cap yours
+					{t("onboarding.shortcutsStep.title")}
 				</h2>
 				<p class="text-[14px] text-gray-10 leading-relaxed">
-					Customize everything from keyboard shortcuts to storage. Cap adapts to
-					your workflow.
+					{t("onboarding.shortcutsStep.desc")}
 				</p>
 			</div>
 
@@ -1013,10 +1004,10 @@ function ShortcutsStep(props: { active: boolean }) {
 							}}
 						>
 							<span class="text-[13px] font-medium text-gray-12">
-								{area.title}
+								{t(area.titleKey)}
 							</span>
 							<span class="text-[11px] text-gray-10 leading-snug">
-								{area.desc}
+								{t(area.descKey)}
 							</span>
 						</div>
 					)}
@@ -1029,20 +1020,21 @@ function ShortcutsStep(props: { active: boolean }) {
 					visible() ? "opacity-100" : "opacity-0",
 				)}
 			>
-				Change any of these at any time in Settings
+				{t("onboarding.shortcutsStep.footer")}
 			</p>
 		</div>
 	);
 }
 
 function FaqStep(props: { active: boolean }) {
+	const { t } = useI18n();
 	const [visible, setVisible] = createSignal(false);
 
 	createEffect(() => {
 		if (props.active) {
 			setVisible(false);
-			const t = setTimeout(() => setVisible(true), 100);
-			onCleanup(() => clearTimeout(t));
+			const timer = setTimeout(() => setVisible(true), 100);
+			onCleanup(() => clearTimeout(timer));
 		} else {
 			setVisible(false);
 		}
@@ -1057,10 +1049,10 @@ function FaqStep(props: { active: boolean }) {
 				)}
 			>
 				<h2 class="text-2xl font-bold text-gray-12 tracking-tight">
-					Frequently Asked Questions
+					{t("onboarding.faq.title")}
 				</h2>
 				<p class="text-[14px] text-gray-10">
-					Everything you need to know to get started.
+					{t("onboarding.faq.desc")}
 				</p>
 			</div>
 
@@ -1070,46 +1062,39 @@ function FaqStep(props: { active: boolean }) {
 					visible() ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
 				)}
 			>
-				<FaqItem question="Is Cap free to use?">
+				<FaqItem question={t("onboarding.faq.items.freeToUse.question")}>
 					<p class="text-[13px] text-gray-10 leading-relaxed">
-						Cap is free for personal use. For teams and commercial use, check
-						out our{" "}
+						{t("onboarding.faq.items.freeToUse.answer")}{" "}
 						<button
 							type="button"
 							onClick={() => shell.open("https://cap.so/pricing")}
 							class="text-blue-10 hover:text-blue-11 underline underline-offset-2"
 						>
-							pricing plans
+							{t("onboarding.faq.items.freeToUse.pricingLink")}
 						</button>
-						.
+						{t("onboarding.faq.items.freeToUse.answerSuffix")}
 					</p>
 				</FaqItem>
-				<FaqItem question="What's the difference between Instant and Studio?">
+				<FaqItem
+					question={t("onboarding.faq.items.instantVsStudio.question")}
+				>
 					<p class="text-[13px] text-gray-10 leading-relaxed">
-						Instant mode uploads as you record — stop recording and you'll have
-						a shareable link immediately. Studio mode records locally in full
-						quality, letting you edit with backgrounds, effects, and more before
-						sharing.
+						{t("onboarding.faq.items.instantVsStudio.answer")}
 					</p>
 				</FaqItem>
-				<FaqItem question="Where are my recordings stored?">
+				<FaqItem question={t("onboarding.faq.items.storage.question")}>
 					<p class="text-[13px] text-gray-10 leading-relaxed">
-						All recordings are stored locally on your computer. In Instant mode,
-						they're also uploaded to Cap's cloud for easy sharing. You can
-						manage storage in Settings.
+						{t("onboarding.faq.items.storage.answer")}
 					</p>
 				</FaqItem>
-				<FaqItem question="Can I change my shortcuts later?">
+				<FaqItem question={t("onboarding.faq.items.changeShortcuts.question")}>
 					<p class="text-[13px] text-gray-10 leading-relaxed">
-						Head to Settings → Shortcuts at any time to customize all your
-						keyboard shortcuts.
+						{t("onboarding.faq.items.changeShortcuts.answer")}
 					</p>
 				</FaqItem>
-				<FaqItem question="How does sharing work?">
+				<FaqItem question={t("onboarding.faq.items.sharing.question")}>
 					<p class="text-[13px] text-gray-10 leading-relaxed">
-						In Instant mode, you get a shareable link automatically when you
-						stop recording. In Studio mode, export your edited video and share
-						via Cap's cloud or save locally.
+						{t("onboarding.faq.items.sharing.answer")}
 					</p>
 				</FaqItem>
 			</div>
@@ -1122,7 +1107,7 @@ function FaqStep(props: { active: boolean }) {
 					visible() ? "opacity-100" : "opacity-0",
 				)}
 			>
-				View pricing plans
+				{t("onboarding.faq.viewPricing")}
 				<IconLucideExternalLink class="size-3" />
 			</button>
 		</div>
@@ -1195,6 +1180,7 @@ function StartRecordingClickMock(props: {
 	active: boolean;
 	mode: "instant" | "studio";
 }) {
+	const { t } = useI18n();
 	const [cursorStage, setCursorStage] = createSignal(0);
 
 	const cursorMoveMs = 1450;
@@ -1219,7 +1205,9 @@ function StartRecordingClickMock(props: {
 	});
 
 	const modeLabel = () =>
-		props.mode === "studio" ? "Studio Mode" : "Instant Mode";
+		props.mode === "studio"
+			? t("onboarding.mockup.studioModeLabel")
+			: t("onboarding.mockup.instantModeLabel");
 
 	const cursorW = () => (ostype() === "windows" ? 24 : 22);
 	const cursorH = () => (ostype() === "windows" ? 34 : 32);
@@ -1242,7 +1230,7 @@ function StartRecordingClickMock(props: {
 						</Show>
 						<div class="mr-2 ml-3 flex min-w-0 flex-col">
 							<span class="text-[0.95rem] font-medium text-nowrap text-white">
-								Start Recording
+								{t("onboarding.mockup.startRecording")}
 							</span>
 							<span class="-mt-0.5 flex items-center gap-1 text-[11px] font-light text-nowrap text-white/90">
 								{modeLabel()}
@@ -1288,6 +1276,7 @@ function RecordingBar(props: {
 	stopped?: boolean;
 	class?: string;
 }) {
+	const { t } = useI18n();
 	const actionIconWrap =
 		"h-8 w-8 flex shrink-0 items-center justify-center rounded-lg p-1 text-gray-11";
 
@@ -1301,7 +1290,9 @@ function RecordingBar(props: {
 							fallback={
 								<div class="flex flex-row items-center gap-1.5 rounded-lg px-2 py-1 text-gray-10">
 									<div class="size-2 shrink-0 rounded-full bg-gray-8" />
-									<span class="text-[0.875rem] font-medium">Stopped</span>
+									<span class="text-[0.875rem] font-medium">
+										{t("onboarding.mockup.stopped")}
+									</span>
 								</div>
 							}
 						>
@@ -1360,6 +1351,7 @@ function RecordingBar(props: {
 }
 
 function InstantMockup(props: { active: boolean }) {
+	const { t } = useI18n();
 	const phase = createLoopingPhase(
 		() => props.active,
 		[300, 2350, 3350, 4350, 5350, 6350, 7350, 8350],
@@ -1382,10 +1374,15 @@ function InstantMockup(props: { active: boolean }) {
 		return "0:00";
 	};
 
+	const steps = () =>
+		Array.from({ length: 3 }, (_, i) =>
+			t(`onboarding.mockup.instantSteps.${i}`),
+		);
+
 	return (
 		<div class="w-full h-full flex flex-col min-h-0 p-4">
 			<MockupStepBar
-				steps={["Record", "Stop", "Share link"]}
+				steps={steps()}
 				activeStep={activeStep()}
 			/>
 			<div class="relative flex-1 min-h-[200px] w-full max-w-[420px] mx-auto">
@@ -1437,7 +1434,7 @@ function InstantMockup(props: { active: boolean }) {
 									<IconLucideCheck class="size-3 text-green-600" />
 								</div>
 								<span class="text-[12px] font-medium text-gray-12">
-									Link ready to share!
+									{t("onboarding.mockup.linkReady")}
 								</span>
 							</div>
 							<div class="flex items-center gap-2 w-full">
@@ -1459,12 +1456,12 @@ function InstantMockup(props: { active: boolean }) {
 										fallback={
 											<>
 												<IconLucideCopy class="size-3" stroke-width={2} />
-												Copy
+												{t("onboarding.mockup.copy")}
 											</>
 										}
 									>
 										<IconLucideCheck class="size-3" />
-										Copied!
+										{t("onboarding.mockup.copied")}
 									</Show>
 								</div>
 							</div>
@@ -1477,6 +1474,7 @@ function InstantMockup(props: { active: boolean }) {
 }
 
 function StudioMockup(props: { active: boolean }) {
+	const { t } = useI18n();
 	const phase = createLoopingPhase(
 		() => props.active,
 		[300, 2350, 3350, 4350, 5350, 6350, 7350, 8150, 9150, 10150, 11150],
@@ -1511,10 +1509,15 @@ function StudioMockup(props: { active: boolean }) {
 		return 0;
 	};
 
+	const steps = () =>
+		Array.from({ length: 3 }, (_, i) =>
+			t(`onboarding.mockup.studioSteps.${i}`),
+		);
+
 	return (
 		<div class="w-full h-full flex flex-col min-h-0 p-4">
 			<MockupStepBar
-				steps={["Record", "Edit", "Export"]}
+				steps={steps()}
 				activeStep={activeStep()}
 			/>
 			<div class="relative flex-1 w-full max-w-[420px] min-h-[248px] mx-auto flex items-center justify-center">
@@ -1571,7 +1574,7 @@ function StudioMockup(props: { active: boolean }) {
 								<div class="size-2 rounded-full bg-gray-6" />
 							</div>
 							<span class="text-[10px] text-gray-11 font-medium">
-								Cap Editor
+								{t("onboarding.mockup.editor.title")}
 							</span>
 						</div>
 						<div
@@ -1582,7 +1585,7 @@ function StudioMockup(props: { active: boolean }) {
 									: "scale-100 ring-0 ring-offset-0",
 							)}
 						>
-							Export
+							{t("onboarding.mockup.editor.export")}
 						</div>
 					</div>
 
@@ -1620,11 +1623,11 @@ function StudioMockup(props: { active: boolean }) {
 							)}
 						>
 							<div class="text-[8px] text-gray-9 font-medium uppercase tracking-wider">
-								Style
+								{t("onboarding.mockup.editor.style")}
 							</div>
 							<div class="h-5 rounded-sm border border-gray-3 bg-white dark:bg-gray-2" />
 							<div class="text-[8px] text-gray-9 font-medium uppercase tracking-wider mt-1">
-								Background
+								{t("onboarding.mockup.editor.background")}
 							</div>
 							<div class="flex gap-1">
 								<div class="size-4 rounded-full bg-linear-to-br from-blue-400 to-purple-500 border border-gray-3" />
@@ -1644,13 +1647,13 @@ function StudioMockup(props: { active: boolean }) {
 													<IconLucideCheck class="size-3.5 text-green-600" />
 												</div>
 												<span class="text-sm font-medium text-gray-12">
-													Export complete!
+													{t("onboarding.mockup.editor.exportComplete")}
 												</span>
 											</div>
 										}
 									>
 										<span class="text-sm font-medium text-gray-12">
-											Exporting...
+											{t("onboarding.mockup.editor.exporting")}
 										</span>
 									</Show>
 									<div class="w-full h-2 bg-gray-4 rounded-full overflow-hidden">
@@ -1701,6 +1704,7 @@ function StartupOverlay(props: {
 	isExiting: boolean;
 	onGetStarted: () => void;
 }) {
+	const { t } = useI18n();
 	const [audioState, setAudioState] = makePersisted(
 		createStore({ isMuted: false }),
 		{ name: "audioSettings" },
@@ -1921,10 +1925,10 @@ function StartupOverlay(props: {
 						/>
 					</div>
 					<h1 class="text-5xl md:text-5xl font-bold mb-4 mt-8 drop-shadow-[0_0_20px_rgba(0,0,0,0.2)]">
-						Welcome to Cap
+						{t("onboarding.startupOverlay.welcome")}
 					</h1>
 					<p class="text-xl md:text-2xl opacity-80 mx-auto drop-shadow-[0_0_20px_rgba(0,0,0,0.2)] whitespace-nowrap">
-						Beautiful screen recordings, owned by you.
+						{t("onboarding.startupOverlay.subtitle")}
 					</p>
 				</div>
 
@@ -1934,11 +1938,11 @@ function StartupOverlay(props: {
 					size="lg"
 					onClick={handleGetStarted}
 				>
-					<span>Get Started</span>
+					<span>{t("onboarding.startupOverlay.getStarted")}</span>
 					<span class="text-[11px] font-normal text-[rgba(22,27,38,0.58)] leading-tight inline-flex items-center justify-center gap-1">
-						<span>Click here, or press</span>
+						<span>{t("onboarding.startupOverlay.clickOrPress")}</span>
 						<kbd class="rounded border border-gray-6 bg-white dark:bg-gray-3 px-1 py-px text-[10px] font-medium text-gray-11 shadow-[0_1px_0_rgba(0,0,0,0.04)]">
-							Space
+							{t("onboarding.startupOverlay.space")}
 						</kbd>
 					</span>
 				</Button>
@@ -1952,6 +1956,7 @@ function PermissionsStep(props: {
 	onPermissionsChanged: (allRequired: boolean) => void;
 	onCorePermissionsChanged: (granted: boolean) => void;
 }) {
+	const { t } = useI18n();
 	const [visible, setVisible] = createSignal(false);
 	const [initialCheck, setInitialCheck] = createSignal(true);
 	const [check, setCheck] = createSignal<
@@ -1970,8 +1975,8 @@ function PermissionsStep(props: {
 	createEffect(() => {
 		if (props.active) {
 			setVisible(false);
-			const t = setTimeout(() => setVisible(true), 100);
-			onCleanup(() => clearTimeout(t));
+			const timer = setTimeout(() => setVisible(true), 100);
+			onCleanup(() => clearTimeout(timer));
 		} else {
 			setVisible(false);
 		}
@@ -1999,13 +2004,13 @@ function PermissionsStep(props: {
 	const maybePromptRestartForPermission = async (permission: OSPermission) => {
 		const message =
 			permission === "accessibility"
-				? "After enabling Accessibility for Cap in System Settings, macOS may keep showing it as denied until you restart the app."
-				: "After adding Cap in System Settings, you'll need to restart the app for the permission to take effect.";
+				? t("onboarding.permissions.restartAccessibility")
+				: t("onboarding.permissions.restartGeneric");
 		const shouldRestart = await ask(message, {
-			title: "Restart Required",
+			title: t("onboarding.permissions.restartTitle"),
 			kind: "info",
-			okLabel: "Restart, I've granted permission",
-			cancelLabel: "No, I still need to add it",
+			okLabel: t("onboarding.permissions.restartOk"),
+			cancelLabel: t("onboarding.permissions.restartCancel"),
 		});
 		if (shouldRestart) {
 			await relaunch();
@@ -2072,10 +2077,10 @@ function PermissionsStep(props: {
 					<IconLucideShield class="size-5 text-gray-11" />
 				</div>
 				<h2 class="text-2xl font-bold text-gray-12 tracking-tight">
-					Permissions Required
+					{t("onboarding.permissions.title")}
 				</h2>
 				<p class="text-[14px] text-gray-10 leading-relaxed">
-					Cap needs a few permissions to record your screen and capture audio.
+					{t("onboarding.permissions.desc")}
 				</p>
 			</div>
 
@@ -2103,16 +2108,16 @@ function PermissionsStep(props: {
 									<div class="flex flex-col flex-1 min-w-0">
 										<div class="flex items-center gap-2">
 											<span class="text-[13px] font-medium text-gray-12">
-												{permission.name}
+												{t(permission.nameKey)}
 											</span>
 											<Show when={permission.optional}>
 												<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-2 dark:bg-gray-4 text-gray-9">
-													Optional
+													{t("onboarding.permissions.optional")}
 												</span>
 											</Show>
 										</div>
 										<span class="text-[11px] text-gray-10 leading-snug mt-0.5">
-											{permission.description}
+											{t(permission.descriptionKey)}
 										</span>
 									</div>
 									<Show
@@ -2120,7 +2125,7 @@ function PermissionsStep(props: {
 										fallback={
 											<div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-3 border border-green-5 text-green-11 text-[12px] font-medium shrink-0">
 												<IconLucideCheck class="size-3" />
-												Granted
+												{t("onboarding.permissions.granted")}
 											</div>
 										}
 									>
@@ -2139,8 +2144,8 @@ function PermissionsStep(props: {
 										>
 											{permission.requiresManualGrant ||
 											permStatus() === "denied"
-												? "Open Settings"
-												: "Grant"}
+												? t("onboarding.permissions.openSettings")
+												: t("onboarding.permissions.grant")}
 										</Button>
 									</Show>
 								</div>
@@ -2154,6 +2159,7 @@ function PermissionsStep(props: {
 }
 
 function ScreenshotMockup(props: { active: boolean }) {
+	const { t } = useI18n();
 	const phase = createLoopingPhase(
 		() => props.active,
 		[200, 700, 1400, 2600, 3400, 3900, 4900, 5900, 6700],
@@ -2169,10 +2175,15 @@ function ScreenshotMockup(props: { active: boolean }) {
 
 	const showEditor = () => phase() >= 6;
 
+	const steps = () =>
+		Array.from({ length: 3 }, (_, i) =>
+			t(`onboarding.mockup.screenshotSteps.${i}`),
+		);
+
 	return (
 		<div class="w-full h-full flex flex-col items-center justify-center p-4">
 			<MockupStepBar
-				steps={["Select area", "Beautify", "Copy"]}
+				steps={steps()}
 				activeStep={activeStep()}
 			/>
 			<div class="relative w-full max-w-[420px] h-[240px]">
@@ -2316,11 +2327,11 @@ function ScreenshotMockup(props: { active: boolean }) {
 							<div class="flex flex-1 flex-row items-center justify-end gap-1.5">
 								<div class="flex items-center gap-1 px-2 py-1 rounded-md bg-white dark:bg-gray-3 border border-gray-4 text-[9px] text-gray-11 font-medium">
 									<IconLucideCopy class="size-3 shrink-0" stroke-width={2} />
-									Copy
+									{t("onboarding.mockup.copy")}
 								</div>
 								<div class="flex items-center gap-1 px-2 py-1 rounded-md bg-white dark:bg-gray-3 border border-gray-4 text-[9px] text-gray-11 font-medium">
 									<IconLucideSave class="size-3 shrink-0" stroke-width={2} />
-									Save
+									{t("onboarding.mockup.save")}
 								</div>
 							</div>
 						</div>
@@ -2374,7 +2385,7 @@ function ScreenshotMockup(props: { active: boolean }) {
 						>
 							<div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-12 text-gray-1 text-[10px] font-medium">
 								<IconLucideCheck class="size-3" />
-								Copied to clipboard
+								{t("onboarding.mockup.copiedToClipboard")}
 							</div>
 						</div>
 					</div>

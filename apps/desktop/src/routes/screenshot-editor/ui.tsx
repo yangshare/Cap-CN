@@ -19,6 +19,7 @@ import {
 	type ValidComponent,
 } from "solid-js";
 import Tooltip from "~/components/Tooltip";
+import { useI18n } from "~/i18n/I18nProvider";
 import { useScreenshotEditorContext } from "./context";
 import { TextInput } from "./TextInput";
 
@@ -188,9 +189,10 @@ export const Dialog = {
 		);
 	},
 	CloseButton() {
+		const { t } = useI18n();
 		return (
 			<KDialog.CloseButton as={Button} variant="gray">
-				Cancel
+				{t("screenshotEditor.ui.cancel")}
 			</KDialog.CloseButton>
 		);
 	},
@@ -351,6 +353,7 @@ type EditorButtonProps<T extends ValidComponent = "button"> =
 export function EditorButton<T extends ValidComponent = "button">(
 	props: EditorButtonProps<T>,
 ) {
+	const { t } = useI18n();
 	const [local, cvaProps, others] = splitProps(
 		mergeProps({ variant: "primary" }, props) as unknown as EditorButtonProps,
 		[
@@ -385,7 +388,11 @@ export function EditorButton<T extends ValidComponent = "button">(
 			{local.tooltipText || local.comingSoon ? (
 				<Tooltip
 					kbd={local.kbd}
-					content={local.comingSoon ? "Coming Soon" : local.tooltipText}
+					content={
+						local.comingSoon
+							? t("screenshotEditor.ui.comingSoon")
+							: local.tooltipText
+					}
 				>
 					<Polymorphic
 						as="button"
@@ -435,6 +442,7 @@ export const topSlideAnimateClasses =
 export function ComingSoonTooltip(
 	props: ComponentProps<typeof KTooltip> & { as?: ValidComponent },
 ) {
+	const { t } = useI18n();
 	const [trigger, root] = splitProps(props, ["children", "as"]);
 	return (
 		<KTooltip placement="top" openDelay={0} closeDelay={0} {...root}>
@@ -443,7 +451,7 @@ export function ComingSoonTooltip(
 			</KTooltip.Trigger>
 			<KTooltip.Portal>
 				<KTooltip.Content class="p-2 font-medium bg-gray-12 text-gray-1 data-expanded:animate-in data-expanded:slide-in-from-bottom-1 data-expanded:fade-in data-closed:animate-out data-closed:slide-out-to-bottom-1 data-closed:fade-out rounded-lg text-xs z-1000">
-					Coming Soon
+					{t("screenshotEditor.ui.comingSoon")}
 				</KTooltip.Content>
 			</KTooltip.Portal>
 		</KTooltip>

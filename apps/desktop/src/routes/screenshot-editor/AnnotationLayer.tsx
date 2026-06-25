@@ -7,6 +7,7 @@ import {
 	Show,
 } from "solid-js";
 import { unwrap } from "solid-js/store";
+import { useI18n } from "~/i18n/I18nProvider";
 import { getArrowHeadPoints } from "./arrow";
 import {
 	type Annotation,
@@ -33,6 +34,7 @@ export function AnnotationLayer(props: {
 		setSelectedAnnotationId,
 		projectHistory,
 	} = useScreenshotEditorContext();
+	const { t } = useI18n();
 
 	const [isDrawing, setIsDrawing] = createSignal(false);
 	const [dragState, setDragState] = createSignal<{
@@ -212,7 +214,7 @@ export function AnnotationLayer(props: {
 			fillColor: "transparent",
 			opacity: 1,
 			rotation: 0,
-			text: tool === "text" ? "Text" : null,
+			text: tool === "text" ? t("screenshotEditor.tools.text") : null,
 			maskType: tool === "mask" ? "pixelate" : null,
 			maskLevel: tool === "mask" ? 7 : null,
 		};

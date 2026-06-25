@@ -24,6 +24,7 @@ import {
 import { createStore, produce, type SetStoreFunction } from "solid-js/store";
 import { TransitionGroup } from "solid-transition-group";
 import { authStore } from "~/store";
+import { useI18n } from "~/i18n/I18nProvider";
 import { createTauriEventListener } from "~/utils/createEventListener";
 import { createExportToFileTask, exportVideo } from "~/utils/export";
 import {
@@ -47,6 +48,7 @@ type MediaEntry = {
 };
 
 export default function () {
+	const { t } = useI18n();
 	onMount(() => {
 		document.documentElement.setAttribute("data-transparent-window", "true");
 		document.body.style.background = "transparent";
@@ -206,10 +208,10 @@ export default function () {
 															<ActionProgressOverlay
 																title={
 																	state.type === "rendering"
-																		? "Rendering video"
+																		? t("recordingsOverlay.action.renderingVideo")
 																		: state.type === "copying"
-																			? "Copying to clipboard"
-																			: "Copied to clipboard"
+																			? t("recordingsOverlay.action.copyingToClipboard")
+																			: t("recordingsOverlay.action.copiedToClipboard")
 																}
 																progressPercentage={actionProgressPercentage(
 																	actionState,
@@ -227,20 +229,20 @@ export default function () {
 															<ActionProgressOverlay
 																title={(() => {
 																	if (state.type === "choosing-location")
-																		return "Preparing";
+																		return t("recordingsOverlay.action.preparing");
 
 																	if (isRecording) {
 																		if (state.type === "rendering")
-																			return "Rendering video";
+																			return t("recordingsOverlay.action.renderingVideo");
 																		if (state.type === "saving")
-																			return "Saving video";
-																		return "Saved video";
+																			return t("recordingsOverlay.action.savingVideo");
+																		return t("recordingsOverlay.action.savedVideo");
 																	} else {
 																		if (state.type === "rendering")
-																			return "Rendering image";
+																			return t("recordingsOverlay.action.renderingImage");
 																		if (state.type === "saving")
-																			return "Saving image";
-																		return "Saved image";
+																			return t("recordingsOverlay.action.savingImage");
+																		return t("recordingsOverlay.action.savedImage");
 																	}
 																})()}
 																progressPercentage={actionProgressPercentage(
@@ -248,9 +250,11 @@ export default function () {
 																)}
 																progressMessage={
 																	state.type === "choosing-location" &&
-																	`Choose where to ${
-																		isRecording ? "export video" : "save image"
-																	}...`
+																	t(
+																		isRecording
+																			? "recordingsOverlay.action.chooseExportVideo"
+																			: "recordingsOverlay.action.chooseSaveImage",
+																	)
 																}
 															/>
 														)}
@@ -265,10 +269,10 @@ export default function () {
 															<ActionProgressOverlay
 																title={
 																	state.type === "rendering"
-																		? "Rendering video"
+																		? t("recordingsOverlay.action.renderingVideo")
 																		: state.type === "uploading"
-																			? "Creating shareable link"
-																			: "Shareable link copied"
+																			? t("recordingsOverlay.action.creatingShareableLink")
+																			: t("recordingsOverlay.action.shareableLinkCopied")
 																}
 																progressPercentage={actionProgressPercentage(
 																	actionState,
@@ -292,7 +296,7 @@ export default function () {
 												>
 													<TooltipIconButton
 														class="absolute top-3 left-3 z-20"
-														tooltipText="Close"
+														tooltipText={t("recordingsOverlay.tooltip.close")}
 														tooltipPlacement="right"
 														onClick={() => {
 															const setMedia = isRecording
@@ -315,7 +319,7 @@ export default function () {
 													{isRecording ? (
 														<TooltipIconButton
 															class="absolute bottom-3 left-3 z-20"
-															tooltipText="Edit"
+															tooltipText={t("recordingsOverlay.tooltip.edit")}
 															tooltipPlacement="right"
 															onClick={() => {
 																const setMedia = isRecording
@@ -341,7 +345,7 @@ export default function () {
 													) : (
 														<TooltipIconButton
 															class="absolute bottom-3 left-3 z-20"
-															tooltipText="View"
+															tooltipText={t("recordingsOverlay.tooltip.view")}
 															tooltipPlacement="right"
 															onClick={() => {
 																commands.openFilePath(media.path);
@@ -354,8 +358,8 @@ export default function () {
 														class="absolute top-3 right-3 z-20"
 														tooltipText={
 															copy.isPending
-																? "Copying to Clipboard"
-																: "Copy to Clipboard"
+																? t("recordingsOverlay.tooltip.copyingToClipboard")
+																: t("recordingsOverlay.tooltip.copyToClipboard")
 														}
 														tooltipPlacement="left"
 														onClick={() => copy.mutate()}
@@ -366,8 +370,8 @@ export default function () {
 														class="absolute right-3 bottom-3 z-998"
 														tooltipText={
 															recordingMeta.data?.sharing
-																? "Copy Shareable Link"
-																: "Create Shareable Link"
+																? t("recordingsOverlay.tooltip.copyShareableLink")
+																: t("recordingsOverlay.tooltip.createShareableLink")
 														}
 														tooltipPlacement="left"
 														onClick={() => upload.mutate()}
@@ -380,7 +384,7 @@ export default function () {
 															size="sm"
 															onClick={() => save.mutate()}
 														>
-															Export
+															{t("recordingsOverlay.exportButton")}
 														</Button>
 													</div>
 												</div>
@@ -557,6 +561,7 @@ function createRecordingMutations(
 	media: MediaEntry,
 	onEvent: (e: "upgradeRequired") => void,
 ) {
+	const { t } = useI18n();
 	const type = media.type ?? "recording";
 	const isRecording = type !== "screenshot";
 
@@ -641,7 +646,7 @@ function createRecordingMutations(
 			}
 
 			const defaultName = isRecording
-				? "Cap Recording"
+				? t("recordingsOverlay.defaultRecordingName")
 				: media.path.split(".cap/")[1];
 			const suggestedName = meta.pretty_name || defaultName;
 

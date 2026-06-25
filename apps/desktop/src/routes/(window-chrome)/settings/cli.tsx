@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { createResource, createSignal, Show } from "solid-js";
 import toast from "solid-toast";
+import { useI18n } from "~/i18n/I18nProvider";
 import { Section, SectionCard, SettingsPageContent } from "./Setting";
 
 type CliInstallStatus = {
@@ -31,14 +32,19 @@ function errorMessage(error: unknown, fallback: string) {
 }
 
 export default function CliSettings() {
+	const { t } = useI18n();
 	const [status, { refetch, mutate }] = createResource(getCliInstallStatus);
 	const [isInstalling, setIsInstalling] = createSignal(false);
 	const [isUninstalling, setIsUninstalling] = createSignal(false);
 
 	const installButtonLabel = () => {
 		if (isInstalling())
-			return status()?.installed ? "Repairing..." : "Installing...";
-		return status()?.installed ? "Repair" : "Install CLI";
+			return status()?.installed
+				? t("settings.cli.repairing")
+				: t("settings.cli.installing");
+		return status()?.installed
+			? t("settings.cli.repair")
+			: t("settings.cli.install");
 	};
 
 	const handleInstall = async () => {
@@ -46,9 +52,9 @@ export default function CliSettings() {
 
 		try {
 			mutate(await installCli());
-			toast.success("Cap CLI installed");
+			toast.success(t("settings.cli.toastInstalled"));
 		} catch (error) {
-			toast.error(errorMessage(error, "Failed to install CLI"));
+			toast.error(errorMessage(error, t("settings.cli.toastInstallFailed")));
 			await refetch();
 		} finally {
 			setIsInstalling(false);
@@ -60,9 +66,9 @@ export default function CliSettings() {
 
 		try {
 			mutate(await uninstallCli());
-			toast.success("Cap CLI removed");
+			toast.success(t("settings.cli.toastRemoved"));
 		} catch (error) {
-			toast.error(errorMessage(error, "Failed to remove CLI"));
+			toast.error(errorMessage(error, t("settings.cli.toastRemoveFailed")));
 			await refetch();
 		} finally {
 			setIsUninstalling(false);
@@ -71,15 +77,15 @@ export default function CliSettings() {
 
 	const copyPathCommand = async (command: string) => {
 		await writeText(command);
-		toast.success("Copied to clipboard");
+		toast.success(t("settings.cli.toastCopied"));
 	};
 
 	return (
 		<div class="cap-settings-page flex flex-col h-full custom-scroll">
 			<SettingsPageContent>
 				<Section
-					title="Command Line"
-					description="Install the Cap command for terminals, agents, scripts, and local automation."
+					title={t("settings.cli.title")}
+					description={t("settings.cli.desc")}
 				>
 					<SectionCard padded>
 						<Show
@@ -93,8 +99,9 @@ export default function CliSettings() {
 								>
 									<div class="flex flex-col gap-2">
 										<p class="text-xs leading-relaxed text-red-11">
-											Couldn't load CLI status:{" "}
-											{errorMessage(status.error, "unknown error")}
+											{t("settings.cli.couldNotLoad", {
+												error: errorMessage(status.error, ""),
+											})}
 										</p>
 										<Button
 											size="sm"
@@ -102,7 +109,7 @@ export default function CliSettings() {
 											class="self-start"
 											onClick={() => refetch()}
 										>
-											Retry
+											{t("settings.cli.retry")}
 										</Button>
 									</div>
 								</Show>
@@ -114,13 +121,13 @@ export default function CliSettings() {
 										<div class="flex flex-col gap-1 min-w-0">
 											<p class="text-[13px] text-gray-12">
 												{currentStatus().installed
-													? "Installed"
-													: "Not installed"}
+													? t("settings.cli.installed")
+													: t("settings.cli.notInstalled")}
 											</p>
 											<p class="text-xs leading-snug text-gray-10">
-												The desktop app installs a local{" "}
-												<code class="font-mono text-gray-12">cap</code> command
-												that points back to the bundled CLI.
+												{t("settings.cli.descDetailPre")}{" "}
+												<code class="font-mono text-gray-12">cap</code>{" "}
+												{t("settings.cli.descDetailPost")}
 											</p>
 										</div>
 										<div class="flex shrink-0 gap-2">
@@ -131,7 +138,9 @@ export default function CliSettings() {
 													disabled={isUninstalling()}
 													onClick={handleUninstall}
 												>
-													{isUninstalling() ? "Removing..." : "Remove"}
+													{isUninstalling()
+														? t("settings.cli.removing")
+														: t("settings.cli.remove")}
 												</Button>
 											</Show>
 											<Button
@@ -146,9 +155,12 @@ export default function CliSettings() {
 									</div>
 
 									<div class="grid gap-2 text-xs">
-										<PathRow label="Command" value={currentStatus().shimPath} />
 										<PathRow
-											label="Target"
+											label={t("settings.cli.rowCommand")}
+											value={currentStatus().shimPath}
+										/>
+										<PathRow
+											label={t("settings.cli.rowTarget")}
 											value={currentStatus().targetPath}
 										/>
 									</div>
@@ -170,19 +182,19 @@ export default function CliSettings() {
 													when={currentStatus().pathConfigured}
 													fallback={
 														<>
-															Add{" "}
+															{t("settings.cli.addToPathPre")}{" "}
 															<code class="font-mono text-gray-12">
 																{currentStatus().pathEntry}
 															</code>{" "}
-															to your PATH to use{" "}
+															{t("settings.cli.addToPathMid")}{" "}
 															<code class="font-mono text-gray-12">cap</code>{" "}
-															from a new terminal.
+															{t("settings.cli.addToPathPost")}
 														</>
 													}
 												>
-													Added <code class="font-mono text-gray-12">cap</code>{" "}
-													to your PATH. Restart your terminal to use it, or run
-													this now:
+													{t("settings.cli.addedToPathPre")}{" "}
+													<code class="font-mono text-gray-12">cap</code>{" "}
+													{t("settings.cli.addedToPathPost")}
 												</Show>
 											</p>
 											<div class="flex items-center gap-2">
@@ -196,7 +208,7 @@ export default function CliSettings() {
 														copyPathCommand(currentStatus().shellCommand)
 													}
 												>
-													Copy
+													{t("settings.cli.copy")}
 												</Button>
 											</div>
 										</div>

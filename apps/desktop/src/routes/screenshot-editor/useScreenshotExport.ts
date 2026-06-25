@@ -2,6 +2,7 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
 import { createSignal } from "solid-js";
 import toast from "solid-toast";
+import { useI18n } from "~/i18n/I18nProvider";
 import { commands } from "~/utils/tauri";
 import { getArrowHeadPoints } from "./arrow";
 import {
@@ -11,6 +12,7 @@ import {
 } from "./context";
 
 export function useScreenshotExport() {
+	const { t } = useI18n();
 	const editorCtx = useScreenshotEditorContext();
 	const {
 		latestFrame,
@@ -249,7 +251,9 @@ export function useScreenshotExport() {
 					}
 
 					if (Date.now() >= deadline) {
-						reject(new Error("Preview is still updating. Try again."));
+						reject(
+							new Error(t("screenshotEditor.export.previewUpdatingError")),
+						);
 						return;
 					}
 
@@ -372,12 +376,17 @@ export function useScreenshotExport() {
 					const buffer = await blob.arrayBuffer();
 					const uint8Array = new Uint8Array(buffer);
 					const savePath = await save({
-						filters: [{ name: "PNG Image", extensions: ["png"] }],
+						filters: [
+							{
+								name: t("screenshotEditor.export.pngImage"),
+								extensions: ["png"],
+							},
+						],
 						defaultPath: `${editorCtx.prettyName}.png`,
 					});
 					if (savePath) {
 						await writeFile(savePath, uint8Array);
-						toast.success("Screenshot saved!");
+						toast.success(t("screenshotEditor.export.savedToast"));
 						setDialog({ ...dialog(), open: false });
 					}
 				} else {
@@ -396,7 +405,7 @@ export function useScreenshotExport() {
 						const uint8Array = new Uint8Array(buffer);
 						await commands.copyImageToClipboard(Array.from(uint8Array));
 					}
-					toast.success("Screenshot copied to clipboard!");
+					toast.success(t("screenshotEditor.export.copiedToast"));
 					setDialog({ ...dialog(), open: false });
 				}
 			} finally {
@@ -407,7 +416,9 @@ export function useScreenshotExport() {
 		} catch (err) {
 			console.error(err);
 			const message = err instanceof Error ? err.message : String(err);
-			toast.error(message || "Failed to export");
+			toast.error(
+				message || t("screenshotEditor.export.failedToast"),
+			);
 		} finally {
 			setIsExporting(false);
 		}

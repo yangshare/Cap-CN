@@ -38,6 +38,7 @@ import {
 	normalizeBackgroundBlurMode,
 } from "~/components/CameraPreviewChrome";
 import { generalSettingsStore } from "~/store";
+import { useI18n } from "~/i18n/I18nProvider";
 import { createTauriEventListener } from "~/utils/createEventListener";
 import { createCameraMutation } from "~/utils/queries";
 import {
@@ -55,10 +56,6 @@ type CameraPreviewIssue = {
 
 const CAMERA_PREVIEW_ERROR_EVENT = "camera-preview-error";
 const CAMERA_PREVIEW_CLEAR_EVENT = "camera-preview-clear";
-const CAMERA_DISCONNECTED_ISSUE: CameraPreviewIssue = {
-	title: "Camera disconnected",
-	message: "The selected camera stopped sending video.",
-};
 
 const getCameraOnlyMode = () => {
 	return window.__CAP__?.cameraOnlyMode === true;
@@ -123,6 +120,7 @@ async function centerCurrentWindow() {
 export default function () {
 	document.documentElement.classList.toggle("dark", true);
 
+	const { t } = useI18n();
 	const generalSettings = generalSettingsStore.createQuery();
 	const isNativePreviewEnabled = () => {
 		if (type() === "windows") return false;
@@ -132,6 +130,11 @@ export default function () {
 			getNativeCameraPreviewInitialState()
 		);
 	};
+
+	const cameraDisconnectedIssue = () => ({
+		title: t("camera.issueDisconnectedTitle"),
+		message: t("camera.issueDisconnectedMessage"),
+	});
 
 	const [cameraIssue, setCameraIssue] = createSignal<CameraPreviewIssue | null>(
 		null,
@@ -151,7 +154,7 @@ export default function () {
 
 	createTauriEventListener(events.recordingEvent, (payload) => {
 		if (payload.variant === "InputLost" && payload.input === "camera") {
-			setCameraIssue(CAMERA_DISCONNECTED_ISSUE);
+			setCameraIssue(cameraDisconnectedIssue());
 		} else if (
 			payload.variant === "InputRestored" &&
 			payload.input === "camera"
@@ -226,6 +229,7 @@ export default function () {
 function NativeCameraPreviewPage(props: {
 	issue: Accessor<CameraPreviewIssue | null>;
 }) {
+	const { t } = useI18n();
 	const isCameraOnlyMode = () => getCameraOnlyMode();
 
 	const [state, setState] = makePersisted(
@@ -344,7 +348,7 @@ function NativeCameraPreviewPage(props: {
 
 			<Show when={cameraPreviewReady.loading}>
 				<div class="w-full flex-1 flex items-center justify-center">
-					<div class="text-gray-11">Loading camera...</div>
+					<div class="text-gray-11">{t("camera.loadingCamera")}</div>
 				</div>
 			</Show>
 		</div>
@@ -848,9 +852,10 @@ function Canvas(props: {
 }
 
 function CameraLoadingState() {
+	const { t } = useI18n();
 	return (
 		<div class="w-full flex-1 flex items-center justify-center">
-			<div class="text-gray-11">Loading camera...</div>
+			<div class="text-gray-11">{t("camera.loadingCamera")}</div>
 		</div>
 	);
 }

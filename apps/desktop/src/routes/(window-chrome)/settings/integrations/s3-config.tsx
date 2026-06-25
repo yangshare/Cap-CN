@@ -3,6 +3,7 @@ import { createWritableMemo } from "@solid-primitives/memo";
 import { useMutation } from "@tanstack/solid-query";
 import { createResource, Show, Suspense } from "solid-js";
 import { Input } from "~/routes/editor/ui";
+import { useI18n } from "~/i18n/I18nProvider";
 import { createSelectedOrganization } from "~/utils/organization-branding";
 import { commands } from "~/utils/tauri";
 import { apiClient, protectedHeaders } from "~/utils/web-api";
@@ -28,6 +29,7 @@ const DEFAULT_CONFIG = {
 };
 
 export default function S3ConfigPage() {
+	const { t } = useI18n();
 	const organizationSelection = createSelectedOrganization();
 	const [_s3Config, { refetch }] = createResource(
 		() => organizationSelection.selectedOrganizationId(),
@@ -60,7 +62,7 @@ export default function S3ConfigPage() {
 		},
 		onSuccess: async () => {
 			await refetch();
-			await commands.globalMessageDialog("S3 configuration saved successfully");
+			await commands.globalMessageDialog(t("settings.integrations.s3Config.savedSuccess"));
 		},
 	}));
 
@@ -77,7 +79,7 @@ export default function S3ConfigPage() {
 		onSuccess: async () => {
 			await refetch();
 			await commands.globalMessageDialog(
-				"S3 configuration deleted successfully",
+				t("settings.integrations.s3Config.deletedSuccess"),
 			);
 		},
 	}));
@@ -97,9 +99,7 @@ export default function S3ConfigPage() {
 				clearTimeout(timeoutId);
 
 				if (response.status !== 200)
-					throw new Error(
-						`S3 connection test failed. Check your config and network connection.`,
-					);
+					throw new Error(t("settings.integrations.s3Config.testFailed"));
 
 				return response;
 			} catch (error) {
@@ -108,7 +108,7 @@ export default function S3ConfigPage() {
 				if (error instanceof Error) {
 					if (error.name === "AbortError")
 						throw new Error(
-							"Connection test timed out after 5 seconds. Please check your endpoint URL and network connection.",
+							t("settings.integrations.s3Config.testTimeout"),
 						);
 				}
 
@@ -117,7 +117,7 @@ export default function S3ConfigPage() {
 		},
 		onSuccess: async () => {
 			await commands.globalMessageDialog(
-				"S3 configuration test successful! Connection is working.",
+				t("settings.integrations.s3Config.testSuccess"),
 			);
 		},
 	}));
@@ -157,22 +157,21 @@ export default function S3ConfigPage() {
 	return (
 		<div class="cap-settings-page flex flex-col h-full custom-scroll">
 			<SettingsPageContent>
-				<IntegrationConfigHeader title="S3 Config" />
+				<IntegrationConfigHeader title={t("settings.integrations.s3Config.title")} />
 				<Section
-					title="Configuration"
+					title={t("settings.integrations.s3Config.sectionTitle")}
 					description={
 						<>
-							It should take under 10 minutes to set up and connect your storage
-							bucket to Cap. View the{" "}
+							{t("settings.integrations.s3Config.descIntro")}{" "}
 							<a
 								href="https://cap.so/docs/s3-config"
 								target="_blank"
 								class="underline text-gray-12"
 								rel="noopener"
 							>
-								Storage Config Guide
+								{t("settings.integrations.s3Config.guideLink")}
 							</a>{" "}
-							to get started.
+							{t("settings.integrations.s3Config.descOutro")}
 						</>
 					}
 				>
@@ -188,14 +187,16 @@ export default function S3ConfigPage() {
 								<Show when={managedByOrganization()}>
 									{(organization) => (
 										<p class="text-xs leading-relaxed text-gray-10">
-											Managed by your organization: {organization().name}
+											{t("settings.integrations.s3Config.managedByOrgLabel", {
+												name: organization().name,
+											})}
 										</p>
 									)}
 								</Show>
 
 								<div class="space-y-2">
 									<label class="text-[13px] text-gray-12">
-										Storage Provider
+										{t("settings.integrations.s3Config.storageProvider")}
 									</label>
 									<div class="relative">
 										<select
@@ -209,11 +210,11 @@ export default function S3ConfigPage() {
 											}
 											class="px-3 py-2 pr-10 w-full rounded-lg border border-transparent transition-all duration-200 appearance-none outline-hidden bg-gray-3 focus:border-gray-8"
 										>
-											<option value="aws">AWS S3</option>
-											<option value="cloudflare">Cloudflare R2</option>
-											<option value="supabase">Supabase</option>
-											<option value="minio">MinIO</option>
-											<option value="other">Other S3-Compatible</option>
+											<option value="aws">{t("settings.integrations.s3Config.providers.aws")}</option>
+											<option value="cloudflare">{t("settings.integrations.s3Config.providers.cloudflare")}</option>
+											<option value="supabase">{t("settings.integrations.s3Config.providers.supabase")}</option>
+											<option value="minio">{t("settings.integrations.s3Config.providers.minio")}</option>
+											<option value="other">{t("settings.integrations.s3Config.providers.other")}</option>
 										</select>
 										<div class="flex absolute inset-y-0 right-0 items-center px-2 pointer-events-none">
 											<svg
@@ -233,24 +234,24 @@ export default function S3ConfigPage() {
 								</div>
 
 								{renderInput(
-									"Access Key ID",
+									t("settings.integrations.s3Config.accessKeyId"),
 									"accessKeyId",
 									"PL31OADSQNK",
 									"password",
 								)}
 								{renderInput(
-									"Secret Access Key",
+									t("settings.integrations.s3Config.secretAccessKey"),
 									"secretAccessKey",
 									"PL31OADSQNK",
 									"password",
 								)}
 								{renderInput(
-									"Endpoint",
+									t("settings.integrations.s3Config.endpoint"),
 									"endpoint",
 									"https://s3.amazonaws.com",
 								)}
-								{renderInput("Bucket Name", "bucketName", "my-bucket")}
-								{renderInput("Region", "region", "us-east-1")}
+								{renderInput(t("settings.integrations.s3Config.bucketName"), "bucketName", "my-bucket")}
+								{renderInput(t("settings.integrations.s3Config.region"), "region", "us-east-1")}
 							</div>
 						</Suspense>
 					</SectionCard>
@@ -272,14 +273,18 @@ export default function S3ConfigPage() {
 									variant="destructive"
 									onClick={() => deleteConfig.mutate()}
 								>
-									{deleteConfig.isPending ? "Removing..." : "Remove Config"}
+									{deleteConfig.isPending
+										? t("settings.integrations.s3Config.removing")
+										: t("settings.integrations.s3Config.removeConfig")}
 								</Button>
 							)}
 							<Button
 								variant="gray"
 								onClick={() => testConfig.mutate(s3Config())}
 							>
-								{testConfig.isPending ? "Testing..." : "Test Connection"}
+								{testConfig.isPending
+									? t("settings.integrations.s3Config.testing")
+									: t("settings.integrations.s3Config.testConnection")}
 							</Button>
 						</div>
 						<Button
@@ -287,7 +292,9 @@ export default function S3ConfigPage() {
 							variant="primary"
 							onClick={() => saveConfig.mutate(s3Config())}
 						>
-							{saveConfig.isPending ? "Saving..." : "Save"}
+							{saveConfig.isPending
+								? t("settings.integrations.s3Config.saving")
+								: t("settings.integrations.s3Config.save")}
 						</Button>
 					</fieldset>
 				</div>
