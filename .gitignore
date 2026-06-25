@@ -78,3 +78,5 @@ analysis/
 analysis/plans/
 .ralphy
 tmp/
+
+.codegraph/
