@@ -13,6 +13,7 @@ import {
 import { produce } from "solid-js/store";
 import { defaultCaptionSettings } from "~/store/captions";
 import { commands } from "~/utils/tauri";
+import { useI18n } from "~/i18n/I18nProvider";
 import {
 	getCaptionTextFromWords,
 	mapEditedTimeToSource,
@@ -51,6 +52,7 @@ const TEXT_SIZES = [
 ] as const;
 
 export function TranscriptPanel() {
+	const { t } = useI18n();
 	const {
 		editorState,
 		setEditorState,
@@ -413,7 +415,9 @@ export function TranscriptPanel() {
 	return (
 		<div class="flex flex-col min-h-0 h-full">
 			<div class="px-3 py-2 border-b border-gray-3 flex items-center justify-between shrink-0">
-				<span class="text-xs font-medium text-gray-12">Transcript</span>
+				<span class="text-xs font-medium text-gray-12">
+					{t("editor.transcript.title")}
+				</span>
 				<div class="flex items-center gap-1">
 					<button
 						type="button"
@@ -421,7 +425,7 @@ export function TranscriptPanel() {
 						onClick={addCaptionAtPlayhead}
 					>
 						<IconLucidePlus class="size-3" />
-						Add
+						{t("editor.transcript.add")}
 					</button>
 					<button
 						type="button"
@@ -605,6 +609,7 @@ function TranscriptEditor(props: {
 	onEditWord: (flatIndex: number, text: string) => void;
 	onAddCaption: () => void;
 }) {
+	const { t } = useI18n();
 	const [selectedIndices, setSelectedIndices] = createSignal<Set<number>>(
 		new Set(),
 	);
@@ -780,9 +785,11 @@ function TranscriptEditor(props: {
 				fallback={
 					<div class="flex flex-col items-center justify-center h-full text-gray-9">
 						<IconCapCaptions class="size-10 mb-3 text-gray-7" />
-						<span class="text-sm">No transcript available</span>
+						<span class="text-sm">
+							{t("editor.transcript.emptyTitle")}
+						</span>
 						<span class="text-xs mt-1">
-							Generate captions in the editor first
+							{t("editor.transcript.emptySubtitle")}
 						</span>
 						<button
 							type="button"
@@ -790,7 +797,7 @@ function TranscriptEditor(props: {
 							onClick={props.onAddCaption}
 						>
 							<IconLucidePlus class="size-3.5" />
-							Add caption at playhead
+							{t("editor.transcript.addAtPlayhead")}
 						</button>
 					</div>
 				}

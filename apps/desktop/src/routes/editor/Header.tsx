@@ -14,6 +14,7 @@ import {
 	Show,
 } from "solid-js";
 import Tooltip from "~/components/Tooltip";
+import { useI18n } from "~/i18n/I18nProvider";
 import CaptionControlsMacOS from "~/components/titlebar/controls/CaptionControlsMacOS";
 import CaptionControlsWindows11 from "~/components/titlebar/controls/CaptionControlsWindows11";
 import { trackEvent } from "~/utils/analytics";
@@ -45,6 +46,7 @@ export interface ExportEstimates {
 }
 
 export function Header() {
+	const { t } = useI18n();
 	const {
 		editorInstance,
 		project,
@@ -101,12 +103,12 @@ export function Header() {
 					onClick={async () => {
 						clearTimelineSelection();
 
-						if (!(await ask("Are you sure you want to delete this recording?")))
+						if (!(await ask(t("editor.header.deleteConfirm"))))
 							return;
 
 						await commands.editorDeleteProject();
 					}}
-					tooltipText="Delete recording"
+					tooltipText={t("editor.header.deleteRecording")}
 					leftIcon={<IconCapTrash class="w-5" />}
 				/>
 				<EditorButton
@@ -116,7 +118,7 @@ export function Header() {
 						console.log({ path: `${editorInstance.path}/` });
 						revealItemInDir(`${editorInstance.path}/`);
 					}}
-					tooltipText="Open recording bundle"
+					tooltipText={t("editor.header.openBundle")}
 					leftIcon={<IconLucideFolder class="w-5" />}
 				/>
 
@@ -129,7 +131,7 @@ export function Header() {
 					onClick={() => {
 						if (clearTimelineSelection()) return;
 					}}
-					tooltipText="Captions"
+					tooltipText={t("editor.header.captions")}
 					leftIcon={<IconCapCaptions class="w-5" />}
 					comingSoon={true}
 				/>
@@ -137,7 +139,7 @@ export function Header() {
 					onClick={() => {
 						if (clearTimelineSelection()) return;
 					}}
-					tooltipText="Performance"
+					tooltipText={t("editor.header.performance")}
 					leftIcon={<IconCapGauge class="w-[18px]" />}
 					comingSoon={true}
 				/>
@@ -167,7 +169,7 @@ export function Header() {
 					disabled={
 						!projectHistory.canUndo() && !editorState.timeline.selection
 					}
-					tooltipText="Undo"
+					tooltipText={t("editor.header.undo")}
 					leftIcon={<IconCapUndo class="w-5" />}
 				/>
 				<EditorButton
@@ -179,7 +181,7 @@ export function Header() {
 					disabled={
 						!projectHistory.canRedo() && !editorState.timeline.selection
 					}
-					tooltipText="Redo"
+					tooltipText={t("editor.header.redo")}
 					leftIcon={<IconCapRedo class="w-5" />}
 				/>
 				<div data-tauri-drag-region class="flex-1 h-full" />
@@ -199,7 +201,7 @@ export function Header() {
 					}}
 				>
 					<IconCapClapperboard class="size-4" />
-					Clips
+					{t("editor.header.clips")}
 				</Button>
 				<Show when={hasTranscript()}>
 					<Button
@@ -220,7 +222,7 @@ export function Header() {
 						>
 							<IconLucideArrowLeft class="size-4" />
 						</Show>
-						{isTranscriptOpen() ? "Back" : "Transcript"}
+						{isTranscriptOpen() ? t("editor.header.back") : t("editor.header.transcript")}
 					</Button>
 				</Show>
 				<Button
@@ -236,7 +238,7 @@ export function Header() {
 					}}
 				>
 					<UploadIcon class="size-4" />
-					Export
+					{t("editor.header.export")}
 				</Button>
 				{ostype() === "windows" && <CaptionControlsWindows11 />}
 			</div>

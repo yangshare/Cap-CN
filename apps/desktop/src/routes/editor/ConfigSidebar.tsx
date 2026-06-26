@@ -40,6 +40,7 @@ import {
 import { createStore, produce } from "solid-js/store";
 import { Dynamic } from "solid-js/web";
 import toast from "solid-toast";
+import { useI18n } from "~/i18n/I18nProvider";
 import colorBg from "~/assets/illustrations/color.webp";
 import gradientBg from "~/assets/illustrations/gradient.webp";
 import imageBg from "~/assets/illustrations/image.webp";
@@ -246,12 +247,6 @@ const WALLPAPER_NAMES = [
 
 const CURRENT_DESKTOP_BACKGROUND_ID = "current-desktop-background";
 const CURRENT_DESKTOP_BACKGROUND_BASENAME = "current-desktop-background";
-const getCurrentDesktopBackgroundLabel = () => {
-	const os = ostype();
-	if (os === "macos") return "This Mac";
-	if (os === "windows") return "This PC";
-	return "This device";
-};
 
 type WallpaperOption = {
 	id: string;
@@ -401,6 +396,7 @@ const TAB_IDS = {
 } as const;
 
 export function ConfigSidebar() {
+	const { t } = useI18n();
 	const {
 		project,
 		setProject,
@@ -423,6 +419,55 @@ export function ConfigSidebar() {
 
 	const clampIdleDelay = (value: number) =>
 		Math.round(Math.min(5, Math.max(0.5, value)) * 10) / 10;
+
+	const stereoModeLabel = (mode: StereoMode) => {
+		switch (mode) {
+			case "stereo":
+				return t("editor.config.audio.stereoModes.stereo");
+			case "monoL":
+				return t("editor.config.audio.stereoModes.monoL");
+			case "monoR":
+				return t("editor.config.audio.stereoModes.monoR");
+		}
+	};
+
+	const cursorTypeLabel = (type: CursorType) =>
+		type === "circle"
+			? t("editor.config.cursor.typeOptions.circle.label")
+			: t("editor.config.cursor.typeOptions.auto.label");
+	const cursorTypeDescription = (type: CursorType) =>
+		type === "circle"
+			? t("editor.config.cursor.typeOptions.circle.description")
+			: t("editor.config.cursor.typeOptions.auto.description");
+
+	const cursorAnimationLabel = (style: CursorAnimationStyle) => {
+		switch (style) {
+			case "slow":
+				return t("editor.config.cursor.animationStyles.slow.label");
+			case "smooth":
+				return t("editor.config.cursor.animationStyles.smooth.label");
+			case "mellow":
+				return t("editor.config.cursor.animationStyles.mellow.label");
+			case "fast":
+				return t("editor.config.cursor.animationStyles.fast.label");
+			case "custom":
+				return t("editor.config.cursor.animationStyles.custom.label");
+		}
+	};
+	const cursorAnimationDescription = (style: CursorAnimationStyle) => {
+		switch (style) {
+			case "slow":
+				return t("editor.config.cursor.animationStyles.slow.description");
+			case "smooth":
+				return t("editor.config.cursor.animationStyles.smooth.description");
+			case "mellow":
+				return t("editor.config.cursor.animationStyles.mellow.description");
+			case "fast":
+				return t("editor.config.cursor.animationStyles.fast.description");
+			case "custom":
+				return t("editor.config.cursor.animationStyles.custom.description");
+		}
+	};
 
 	type CursorPhysicsKey = "tension" | "mass" | "friction";
 
@@ -566,17 +611,17 @@ export function ConfigSidebar() {
 					class="flex flex-col flex-1 gap-6 p-4 min-h-0"
 				>
 					<Field
-						name="Audio Controls"
+						name={t("editor.config.audio.controlsField")}
 						icon={<IconLucideVolume2 class="size-4" />}
 					>
-						<Subfield name="Mute Audio">
+						<Subfield name={t("editor.config.audio.muteAudio")}>
 							<Toggle
 								checked={project.audio.mute}
 								onChange={(v) => setProject("audio", "mute", v)}
 							/>
 						</Subfield>
 						{editorInstance.recordings.segments[0].mic?.channels === 2 && (
-							<Subfield name="Microphone Stereo Mode">
+							<Subfield name={t("editor.config.audio.micStereoMode")}>
 								<KSelect<{ name: string; value: StereoMode }>
 									options={STEREO_MODES}
 									optionValue="value"
@@ -594,7 +639,7 @@ export function ConfigSidebar() {
 											item={props.item}
 										>
 											<KSelect.ItemLabel class="flex-1">
-												{props.item.rawValue.name}
+												{stereoModeLabel(props.item.rawValue.value)}
 											</KSelect.ItemLabel>
 										</MenuItem>
 									)}
@@ -604,7 +649,11 @@ export function ConfigSidebar() {
 											name: string;
 											value: StereoMode;
 										}> class="flex-1 text-sm text-left truncate text-(--gray-500) font-normal">
-											{(state) => <span>{state.selectedOption().name}</span>}
+											{(state) => (
+												<span>
+													{stereoModeLabel(state.selectedOption().value)}
+												</span>
+											)}
 										</KSelect.Value>
 										<KSelect.Icon<ValidComponent>
 											as={(props) => (
@@ -645,7 +694,7 @@ export function ConfigSidebar() {
 					</Field>
 					{meta().hasMicrophone && (
 						<Field
-							name="Microphone Volume"
+							name={t("editor.config.audio.micVolume")}
 							icon={<IconCapMicrophone class="size-4" />}
 						>
 							<Slider
@@ -656,14 +705,16 @@ export function ConfigSidebar() {
 								maxValue={10}
 								step={0.1}
 								formatTooltip={(v) =>
-									v <= -30 ? "Muted" : `${v > 0 ? "+" : ""}${v.toFixed(1)} dB`
+									v <= -30
+										? t("editor.config.audio.muted")
+										: `${v > 0 ? "+" : ""}${v.toFixed(1)} dB`
 								}
 							/>
 						</Field>
 					)}
 					{meta().hasSystemAudio && (
 						<Field
-							name="System Audio Volume"
+							name={t("editor.config.audio.systemVolume")}
 							icon={<IconLucideMonitor class="size-4" />}
 						>
 							<Slider
@@ -674,7 +725,9 @@ export function ConfigSidebar() {
 								maxValue={10}
 								step={0.1}
 								formatTooltip={(v) =>
-									v <= -30 ? "Muted" : `${v > 0 ? "+" : ""}${v.toFixed(1)} dB`
+									v <= -30
+										? t("editor.config.audio.muted")
+										: `${v > 0 ? "+" : ""}${v.toFixed(1)} dB`
 								}
 							/>
 						</Field>
@@ -685,7 +738,7 @@ export function ConfigSidebar() {
 					class="flex flex-col flex-1 gap-6 p-4 min-h-0"
 				>
 					<Field
-						name="Show cursor"
+						name={t("editor.config.cursor.showCursor")}
 						value={
 							<Toggle
 								checked={!project.cursor.hide}
@@ -696,7 +749,10 @@ export function ConfigSidebar() {
 						}
 					/>
 					<Show when={!project.cursor.hide}>
-						<Field name="Cursor Type" icon={<IconCapCursor />}>
+						<Field
+							name={t("editor.config.cursor.cursorType")}
+							icon={<IconCapCursor />}
+						>
 							<RadioGroup
 								class="flex flex-col gap-2"
 								value={project.cursor.type}
@@ -714,10 +770,10 @@ export function ConfigSidebar() {
 											<RadioGroup.ItemControl class="mt-1 size-4 rounded-full border border-gray-7 data-checked:border-blue-9 data-checked:bg-blue-9" />
 											<div class="flex flex-col text-left">
 												<span class="text-sm font-medium text-gray-12">
-													{option.label}
+													{cursorTypeLabel(option.value)}
 												</span>
 												<span class="text-xs text-gray-11">
-													{option.description}
+													{cursorTypeDescription(option.value)}
 												</span>
 											</div>
 										</RadioGroup.ItemLabel>
@@ -725,7 +781,10 @@ export function ConfigSidebar() {
 								))}
 							</RadioGroup>
 						</Field>
-						<Field name="Size" icon={<IconCapEnlarge />}>
+						<Field
+							name={t("editor.config.cursor.sizeField")}
+							icon={<IconCapEnlarge />}
+						>
 							<Slider
 								value={[project.cursor.size]}
 								onChange={(v) => setProject("cursor", "size", v[0])}
@@ -734,7 +793,10 @@ export function ConfigSidebar() {
 								step={1}
 							/>
 						</Field>
-						<Field name="Tilt" icon={<IconLucideRotate3d class="size-4" />}>
+						<Field
+							name={t("editor.config.cursor.tiltField")}
+							icon={<IconLucideRotate3d class="size-4" />}
+						>
 							<Slider
 								value={[project.cursor.rotationAmount ?? 0.15]}
 								onChange={(v) => setProject("cursor", "rotationAmount", v[0])}
@@ -745,7 +807,7 @@ export function ConfigSidebar() {
 							/>
 						</Field>
 						<Field
-							name="Hide When Idle"
+							name={t("editor.config.cursor.hideWhenIdle")}
 							icon={<IconLucideTimer class="size-4" />}
 							value={
 								<Toggle
@@ -757,7 +819,10 @@ export function ConfigSidebar() {
 							}
 						/>
 						<Show when={project.cursor.hideWhenIdle}>
-							<Subfield name="Inactivity Delay" class="gap-4 items-center">
+							<Subfield
+								name={t("editor.config.cursor.inactivityDelay")}
+								class="gap-4 items-center"
+							>
 								<div class="flex flex-1 gap-3 items-center">
 									<Slider
 										class="flex-1"
@@ -778,7 +843,7 @@ export function ConfigSidebar() {
 							</Subfield>
 						</Show>
 						<Field
-							name="Cursor Movement Style"
+							name={t("editor.config.cursor.movementStyle")}
 							icon={<IconLucideRabbit class="size-4" />}
 						>
 							<RadioGroup
@@ -798,10 +863,10 @@ export function ConfigSidebar() {
 											<RadioGroup.ItemControl class="mt-1 size-4 rounded-full border border-gray-7 data-checked:border-blue-9 data-checked:bg-blue-9" />
 											<div class="flex flex-col text-left">
 												<span class="text-sm font-medium text-gray-12">
-													{option.label}
+													{cursorAnimationLabel(option.value)}
 												</span>
 												<span class="text-xs text-gray-11">
-													{option.description}
+													{cursorAnimationDescription(option.value)}
 												</span>
 											</div>
 										</RadioGroup.ItemLabel>
@@ -811,7 +876,7 @@ export function ConfigSidebar() {
 						</Field>
 						<KCollapsible open={!project.cursor.raw}>
 							<Field
-								name="Smooth Movement"
+								name={t("editor.config.cursor.smoothMovement")}
 								icon={<IconHugeiconsEaseCurveControlPoints />}
 								value={
 									<Toggle
@@ -825,7 +890,7 @@ export function ConfigSidebar() {
 							<KCollapsible.Content class="overflow-hidden border-b opacity-0 transition-opacity border-gray-3 animate-collapsible-up data-expanded:animate-collapsible-down data-expanded:opacity-100">
 								{/* if Content has padding or margin the animation doesn't look as good */}
 								<div class="flex flex-col gap-4 pt-4 pb-6">
-									<Field name="Tension">
+									<Field name={t("editor.config.cursor.tension")}>
 										<Slider
 											value={[project.cursor.tension]}
 											onChange={(v) => setCursorPhysics("tension", v[0])}
@@ -834,7 +899,7 @@ export function ConfigSidebar() {
 											step={1}
 										/>
 									</Field>
-									<Field name="Friction">
+									<Field name={t("editor.config.cursor.friction")}>
 										<Slider
 											value={[project.cursor.friction]}
 											onChange={(v) => setCursorPhysics("friction", v[0])}
@@ -843,7 +908,7 @@ export function ConfigSidebar() {
 											step={0.1}
 										/>
 									</Field>
-									<Field name="Mass">
+									<Field name={t("editor.config.cursor.mass")}>
 										<Slider
 											value={[project.cursor.mass]}
 											onChange={(v) => setCursorPhysics("mass", v[0])}
@@ -856,7 +921,7 @@ export function ConfigSidebar() {
 							</KCollapsible.Content>
 						</KCollapsible>
 						<Field
-							name="High Quality SVG Cursors"
+							name={t("editor.config.cursor.highQualitySvg")}
 							icon={<IconLucideSparkles />}
 							value={
 								<Toggle
@@ -916,9 +981,9 @@ export function ConfigSidebar() {
           </Field> */}
 				</KTabs.Content>
 				<KTabs.Content value="hotkeys" class="flex flex-1 p-4 min-h-0">
-					<Field name="Hotkeys" icon={<IconCapHotkeys />}>
+					<Field name={t("editor.config.hotkeys.hotkeysField")} icon={<IconCapHotkeys />}>
 						<ComingSoonTooltip>
-							<Subfield name="Show hotkeys">
+							<Subfield name={t("editor.config.hotkeys.showHotkeys")}>
 								<Toggle disabled />
 							</Subfield>
 						</ComingSoonTooltip>
@@ -988,14 +1053,17 @@ export function ConfigSidebar() {
 													}
 													leftIcon={<IconLucideCheck />}
 												>
-													Done
+													{t("editor.config.selection.done")}
 												</EditorButton>
 												<span class="text-sm text-gray-10">
-													{value().segments.length} caption{" "}
-													{value().segments.length === 1
-														? "segment"
-														: "segments"}{" "}
-													selected
+													{t("editor.config.selection.segmentsSelected", {
+														count: value().segments.length,
+														type: t("editor.config.selection.types.caption"),
+														segment:
+															value().segments.length === 1
+																? t("editor.config.selection.segmentSingular")
+																: t("editor.config.selection.segmentPlural"),
+													})}
 												</span>
 											</div>
 											<EditorButton
@@ -1007,7 +1075,7 @@ export function ConfigSidebar() {
 												}
 												leftIcon={<IconCapTrash />}
 											>
-												Delete
+												{t("editor.config.selection.delete")}
 											</EditorButton>
 										</div>
 										<For each={value().segments}>
@@ -1061,14 +1129,17 @@ export function ConfigSidebar() {
 													}}
 													leftIcon={<IconLucideCheck />}
 												>
-													Done
+													{t("editor.config.selection.done")}
 												</EditorButton>
 												<span class="text-sm text-gray-10">
-													{value().segments.length} keyboard{" "}
-													{value().segments.length === 1
-														? "segment"
-														: "segments"}{" "}
-													selected
+													{t("editor.config.selection.segmentsSelected", {
+														count: value().segments.length,
+														type: t("editor.config.selection.types.keyboard"),
+														segment:
+															value().segments.length === 1
+																? t("editor.config.selection.segmentSingular")
+																: t("editor.config.selection.segmentPlural"),
+													})}
 												</span>
 											</div>
 											<EditorButton
@@ -1080,7 +1151,7 @@ export function ConfigSidebar() {
 												}
 												leftIcon={<IconCapTrash />}
 											>
-												Delete
+												{t("editor.config.selection.delete")}
 											</EditorButton>
 										</div>
 										<For each={value().segments}>
@@ -1128,14 +1199,17 @@ export function ConfigSidebar() {
 													}
 													leftIcon={<IconLucideCheck />}
 												>
-													Done
+													{t("editor.config.selection.done")}
 												</EditorButton>
 												<span class="text-sm text-gray-10">
-													{value().segments.length} text{" "}
-													{value().segments.length === 1
-														? "segment"
-														: "segments"}{" "}
-													selected
+													{t("editor.config.selection.segmentsSelected", {
+														count: value().segments.length,
+														type: t("editor.config.selection.types.text"),
+														segment:
+															value().segments.length === 1
+																? t("editor.config.selection.segmentSingular")
+																: t("editor.config.selection.segmentPlural"),
+													})}
 												</span>
 											</div>
 											<EditorButton
@@ -1147,7 +1221,7 @@ export function ConfigSidebar() {
 												}
 												leftIcon={<IconCapTrash />}
 											>
-												Delete
+												{t("editor.config.selection.delete")}
 											</EditorButton>
 										</div>
 										<For each={value().segments}>
@@ -1196,14 +1270,17 @@ export function ConfigSidebar() {
 													}
 													leftIcon={<IconLucideCheck />}
 												>
-													Done
+													{t("editor.config.selection.done")}
 												</EditorButton>
 												<span class="text-sm text-gray-10">
-													{value().segments.length} mask{" "}
-													{value().segments.length === 1
-														? "segment"
-														: "segments"}{" "}
-													selected
+													{t("editor.config.selection.segmentsSelected", {
+														count: value().segments.length,
+														type: t("editor.config.selection.types.mask"),
+														segment:
+															value().segments.length === 1
+																? t("editor.config.selection.segmentSingular")
+																: t("editor.config.selection.segmentPlural"),
+													})}
 												</span>
 											</div>
 											<EditorButton
@@ -1215,7 +1292,7 @@ export function ConfigSidebar() {
 												}
 												leftIcon={<IconCapTrash />}
 											>
-												Delete
+												{t("editor.config.selection.delete")}
 											</EditorButton>
 										</div>
 										<For each={value().segments}>
@@ -1263,14 +1340,17 @@ export function ConfigSidebar() {
 													}
 													leftIcon={<IconLucideCheck />}
 												>
-													Done
+													{t("editor.config.selection.done")}
 												</EditorButton>
 												<span class="text-sm text-gray-10">
-													{value().segments.length} zoom{" "}
-													{value().segments.length === 1
-														? "segment"
-														: "segments"}{" "}
-													selected
+													{t("editor.config.selection.segmentsSelected", {
+														count: value().segments.length,
+														type: t("editor.config.selection.types.zoom"),
+														segment:
+															value().segments.length === 1
+																? t("editor.config.selection.segmentSingular")
+																: t("editor.config.selection.segmentPlural"),
+													})}
 												</span>
 											</div>
 											<EditorButton
@@ -1282,7 +1362,7 @@ export function ConfigSidebar() {
 												}}
 												leftIcon={<IconCapTrash />}
 											>
-												Delete
+												{t("editor.config.selection.delete")}
 											</EditorButton>
 										</div>
 										<Show
@@ -1356,14 +1436,17 @@ export function ConfigSidebar() {
 																}
 																leftIcon={<IconLucideCheck />}
 															>
-																Done
+																{t("editor.config.selection.done")}
 															</EditorButton>
 															<span class="text-sm text-gray-10">
-																{value().segments.length} scene{" "}
-																{value().segments.length === 1
-																	? "segment"
-																	: "segments"}{" "}
-																selected
+																{t("editor.config.selection.segmentsSelected", {
+																	count: value().segments.length,
+																	type: t("editor.config.selection.types.scene"),
+																	segment:
+																		value().segments.length === 1
+																			? t("editor.config.selection.segmentSingular")
+																			: t("editor.config.selection.segmentPlural"),
+																})}
 															</span>
 														</div>
 														<EditorButton
@@ -1380,7 +1463,7 @@ export function ConfigSidebar() {
 															}}
 															leftIcon={<IconCapTrash />}
 														>
-															Delete
+															{t("editor.config.selection.delete")}
 														</EditorButton>
 													</div>
 												</div>
@@ -1429,14 +1512,17 @@ export function ConfigSidebar() {
 																}
 																leftIcon={<IconLucideCheck />}
 															>
-																Done
+																{t("editor.config.selection.done")}
 															</EditorButton>
 															<span class="text-sm text-gray-10">
-																{value().segments.length} clip{" "}
-																{value().segments.length === 1
-																	? "segment"
-																	: "segments"}{" "}
-																selected
+																{t("editor.config.selection.segmentsSelected", {
+																	count: value().segments.length,
+																	type: t("editor.config.selection.types.clip"),
+																	segment:
+																		value().segments.length === 1
+																			? t("editor.config.selection.segmentSingular")
+																			: t("editor.config.selection.segmentPlural"),
+																})}
 															</span>
 														</div>
 														<EditorButton
@@ -1453,7 +1539,7 @@ export function ConfigSidebar() {
 															}}
 															leftIcon={<IconCapTrash />}
 														>
-															Delete
+															{t("editor.config.selection.delete")}
 														</EditorButton>
 													</div>
 												</div>
@@ -1474,8 +1560,52 @@ function BackgroundConfig(props: {
 	scrollRef: HTMLDivElement;
 	brandColorSwatches: OrganizationBrandColorSwatch[];
 }) {
+	const { t } = useI18n();
 	const { project, setProject, editorInstance, projectHistory } =
 		useEditorContext();
+
+	const currentDeviceLabel = () => {
+		const os = ostype();
+		if (os === "macos") return t("editor.config.background.currentDevice.macos");
+		if (os === "windows")
+			return t("editor.config.background.currentDevice.windows");
+		return t("editor.config.background.currentDevice.other");
+	};
+
+	const backgroundSourceLabel = (item: BackgroundSourceTab) => {
+		switch (item) {
+			case "desktop":
+				return t("editor.config.background.sources.desktop");
+			case "wallpaper":
+				return t("editor.config.background.sources.wallpaper");
+			case "image":
+				return t("editor.config.background.sources.image");
+			case "color":
+				return t("editor.config.background.sources.color");
+			case "gradient":
+				return t("editor.config.background.sources.gradient");
+			case "none":
+				return t("editor.config.background.sources.none");
+		}
+	};
+
+	const backgroundThemeLabel = (key: keyof typeof BACKGROUND_THEMES) => {
+		switch (key) {
+			case "macOS":
+				return t("editor.config.background.backgroundThemes.macOS");
+			case "dark":
+				return t("editor.config.background.backgroundThemes.dark");
+			case "blue":
+				return t("editor.config.background.backgroundThemes.blue");
+			case "cities":
+				return t("editor.config.background.backgroundThemes.cities");
+			case "purple":
+				return t("editor.config.background.backgroundThemes.purple");
+			case "orange":
+				return t("editor.config.background.backgroundThemes.orange");
+		}
+	};
+
 	const isNoneBackground = () =>
 		project.background.padding === 0 && project.background.rounding === 0;
 	const initialCurrentDesktopBackgroundPath = () => {
@@ -1545,7 +1675,7 @@ function BackgroundConfig(props: {
 			id: CURRENT_DESKTOP_BACKGROUND_ID,
 			url: convertFileSrc(path),
 			rawPath: path,
-			label: getCurrentDesktopBackgroundLabel(),
+			label: currentDeviceLabel(),
 		};
 	});
 
@@ -1652,7 +1782,7 @@ function BackgroundConfig(props: {
 
 								setWallpaperSource(rawPath);
 							} catch (_err) {
-								toast.error("Failed to set wallpaper");
+								toast.error(t("editor.config.background.failedSetWallpaper"));
 							}
 						};
 
@@ -1748,7 +1878,7 @@ function BackgroundConfig(props: {
 				ensureBackgroundPresentation(addingFromBlankBackground);
 			});
 		} catch (_err) {
-			toast.error("Couldn't import your desktop wallpaper");
+			toast.error(t("editor.config.background.failedImportWallpaper"));
 		} finally {
 			setImportingDesktopBackground(false);
 		}
@@ -1809,7 +1939,7 @@ function BackgroundConfig(props: {
 		return (
 			<img
 				loading="eager"
-				alt={BACKGROUND_SOURCES[item]}
+				alt={backgroundSourceLabel(item)}
 				class="size-3.5 rounded-sm"
 				src={imageSrc}
 			/>
@@ -1828,7 +1958,7 @@ function BackgroundConfig(props: {
 			)}
 		>
 			{renderBackgroundSourceIcon(props.item)}
-			{BACKGROUND_SOURCES[props.item]}
+			{backgroundSourceLabel(props.item)}
 		</KTabs.Trigger>
 	);
 
@@ -1886,7 +2016,10 @@ function BackgroundConfig(props: {
 
 	return (
 		<KTabs.Content value={TAB_IDS.background} class="flex flex-col gap-6 p-4">
-			<Field icon={<IconCapImage class="size-4" />} name="Background Image">
+			<Field
+				icon={<IconCapImage class="size-4" />}
+				name={t("editor.config.background.imageField")}
+			>
 				<KTabs
 					value={backgroundSourceTab()}
 					onChange={(v) => {
@@ -1990,7 +2123,7 @@ function BackgroundConfig(props: {
 								<div class="flex flex-col gap-3 items-center justify-center p-6 w-full rounded-lg border border-dashed bg-gray-2 border-gray-5">
 									<IconLucideMonitor class="size-6 text-gray-11" />
 									<span class="text-[13px] text-center text-gray-12">
-										Use the wallpaper from your desktop
+										{t("editor.config.background.useDesktopWallpaper")}
 									</span>
 									<EditorButton
 										onClick={importDesktopBackground}
@@ -1998,8 +2131,8 @@ function BackgroundConfig(props: {
 										leftIcon={<IconLucideMonitor />}
 									>
 										{importingDesktopBackground()
-											? "Importing..."
-											: "Import desktop background"}
+											? t("editor.config.background.importing")
+											: t("editor.config.background.importDesktop")}
 									</EditorButton>
 								</div>
 							}
@@ -2024,7 +2157,7 @@ function BackgroundConfig(props: {
 											src={photo().url}
 											loading="eager"
 											class="object-cover w-full h-full"
-											alt={photo().label ?? getCurrentDesktopBackgroundLabel()}
+											alt={photo().label ?? currentDeviceLabel()}
 										/>
 										<span class="flex absolute right-2 bottom-2 justify-center items-center w-7 h-7 rounded-full text-white/95 bg-black/55 backdrop-blur-sm">
 											<IconLucideMonitor class="size-4" />
@@ -2037,8 +2170,8 @@ function BackgroundConfig(props: {
 											leftIcon={<IconLucideMonitor />}
 										>
 											{importingDesktopBackground()
-												? "Importing..."
-												: "Re-import"}
+												? t("editor.config.background.importing")
+												: t("editor.config.background.reimport")}
 										</EditorButton>
 									</div>
 								</div>
@@ -2077,7 +2210,9 @@ function BackgroundConfig(props: {
 												value={key}
 												class="flex relative z-10 flex-1 justify-center items-center px-4 py-2 bg-transparent rounded-lg border transition-colors duration-200 text-gray-11 not-data-selected:hover:border-gray-7 data-selected:bg-gray-3 data-selected:border-gray-3 group data-selected:text-gray-12 disabled:opacity-50 focus:outline-hidden"
 											>
-												{value}
+												{backgroundThemeLabel(
+													key as keyof typeof BACKGROUND_THEMES,
+												)}
 											</KTabs.Trigger>
 										</>
 									)}
@@ -2104,7 +2239,7 @@ function BackgroundConfig(props: {
 
 									ensureBackgroundPresentation();
 								} catch (_err) {
-									toast.error("Failed to set wallpaper");
+									toast.error(t("editor.config.background.failedSetWallpaper"));
 								}
 							}}
 							class="grid grid-cols-7 gap-2 h-auto"
@@ -2115,7 +2250,7 @@ function BackgroundConfig(props: {
 									<div class="flex col-span-7 justify-center items-center h-32 text-gray-11">
 										<div class="flex flex-col gap-2 items-center">
 											<div class="w-6 h-6 rounded-full border-2 animate-spin border-gray-5 border-t-blue-400" />
-											<span>Loading wallpapers...</span>
+											<span>{t("editor.config.background.loadingWallpapers")}</span>
 										</div>
 									</div>
 								}
@@ -2132,7 +2267,7 @@ function BackgroundConfig(props: {
 													src={photo.url}
 													loading="eager"
 													class="object-cover w-full h-full"
-													alt="Wallpaper option"
+													alt={t("editor.config.background.wallpaperOptionAlt")}
 												/>
 											</KRadioGroup.ItemControl>
 										</KRadioGroup.Item>
@@ -2151,7 +2286,9 @@ function BackgroundConfig(props: {
 														<KRadioGroup.ItemControl class="overflow-hidden w-full h-full rounded-lg border cursor-pointer border-gray-5 data-checked:border-blue-9 data-checked:ring-2 data-checked:ring-blue-9 peer-focus-visible:border-2 peer-focus-visible:border-blue-9">
 															<img
 																src={photo.url}
-																alt="Wallpaper option"
+																alt={t(
+																	"editor.config.background.wallpaperOptionAlt",
+																)}
 																class="object-cover w-full h-full"
 																loading="lazy"
 															/>
@@ -2179,7 +2316,7 @@ function BackgroundConfig(props: {
 								>
 									<IconCapImage class="text-gray-11 size-6" />
 									<span class="text-gray-12">
-										Click to select or drag and drop image
+										{t("editor.config.background.clickToSelectImage")}
 									</span>
 								</button>
 							}
@@ -2189,7 +2326,7 @@ function BackgroundConfig(props: {
 									<img
 										src={convertFileSrc(source())}
 										class="object-cover w-full h-full"
-										alt="Selected background"
+										alt={t("editor.config.background.selectedBackgroundAlt")}
 									/>
 									<div class="absolute top-2 right-2">
 										<button
@@ -2219,7 +2356,7 @@ function BackgroundConfig(props: {
 
 								const extension = getValidBackgroundImageExtension(file);
 								if (!extension) {
-									toast.error("Invalid image file type");
+									toast.error(t("editor.config.background.invalidImageType"));
 									return;
 								}
 
@@ -2239,7 +2376,7 @@ function BackgroundConfig(props: {
 										path: fullPath,
 									});
 								} catch (_err) {
-									toast.error("Failed to save image");
+									toast.error(t("editor.config.background.failedSaveImage"));
 								}
 							}}
 						/>
@@ -2335,7 +2472,10 @@ function BackgroundConfig(props: {
 				</KTabs>
 			</Field>
 
-			<Field name="Background Blur" icon={<IconCapBgBlur />}>
+			<Field
+				name={t("editor.config.background.blurField")}
+				icon={<IconCapBgBlur />}
+			>
 				<Slider
 					value={[project.background.blur]}
 					onChange={(v) => setProject("background", "blur", v[0])}
@@ -2347,7 +2487,10 @@ function BackgroundConfig(props: {
 			</Field>
 			{/** Dashed divider */}
 			<div class="w-full border-t border-gray-300 border-dashed" />
-			<Field name="Padding" icon={<IconCapPadding class="size-4" />}>
+			<Field
+				name={t("editor.config.background.paddingField")}
+				icon={<IconCapPadding class="size-4" />}
+			>
 				<Slider
 					value={[project.background.padding]}
 					onChange={(v) => setBackgroundDimension("padding", v[0])}
@@ -2357,7 +2500,10 @@ function BackgroundConfig(props: {
 					formatTooltip="%"
 				/>
 			</Field>
-			<Field name="Rounded Corners" icon={<IconCapCorners class="size-4" />}>
+			<Field
+				name={t("editor.config.background.roundedCornersField")}
+				icon={<IconCapCorners class="size-4" />}
+			>
 				<div class="flex flex-col gap-3">
 					<Slider
 						value={[project.background.rounding]}
@@ -2368,7 +2514,7 @@ function BackgroundConfig(props: {
 						formatTooltip="%"
 					/>
 					<CornerStyleSelect
-						label="Corner Style"
+						label={t("editor.config.background.cornerStyle")}
 						value={project.background.roundingType}
 						onChange={(value) =>
 							setProject("background", "roundingType", value)
@@ -2376,7 +2522,10 @@ function BackgroundConfig(props: {
 					/>
 				</div>
 			</Field>
-			<Field name="Motion Blur" icon={<IconLucideWind class="size-4" />}>
+			<Field
+				name={t("editor.config.background.motionBlurField")}
+				icon={<IconLucideWind class="size-4" />}
+			>
 				<Slider
 					value={[
 						project.screenMotionBlur ??
@@ -2397,7 +2546,7 @@ function BackgroundConfig(props: {
 				/>
 			</Field>
 			<Field
-				name="Border"
+				name={t("editor.config.background.borderField")}
 				icon={<IconCapSettings class="size-4" />}
 				value={
 					<Toggle
@@ -2432,7 +2581,10 @@ function BackgroundConfig(props: {
 			<KCollapsible open={project.background.border?.enabled ?? false}>
 				<KCollapsible.Content class="overflow-hidden opacity-0 transition-opacity animate-collapsible-up data-expanded:animate-collapsible-down data-expanded:opacity-100">
 					<div class="flex flex-col gap-6 pb-6">
-						<Field name="Border Width" icon={<IconCapEnlarge class="size-4" />}>
+						<Field
+							name={t("editor.config.background.borderWidthField")}
+							icon={<IconCapEnlarge class="size-4" />}
+						>
 							<Slider
 								value={[project.background.border?.width ?? 5.0]}
 								onChange={(v) =>
@@ -2452,7 +2604,10 @@ function BackgroundConfig(props: {
 								formatTooltip="px"
 							/>
 						</Field>
-						<Field name="Border Color" icon={<IconCapImage class="size-4" />}>
+						<Field
+							name={t("editor.config.background.borderColorField")}
+							icon={<IconCapImage class="size-4" />}
+						>
 							<div class="flex flex-col gap-2">
 								<RgbInput
 									value={project.background.border?.color ?? [0, 0, 0]}
@@ -2475,7 +2630,7 @@ function BackgroundConfig(props: {
 							</div>
 						</Field>
 						<Field
-							name="Border Opacity"
+							name={t("editor.config.background.borderOpacityField")}
 							icon={<IconCapShadow class="size-4" />}
 						>
 							<Slider
@@ -2500,7 +2655,10 @@ function BackgroundConfig(props: {
 					</div>
 				</KCollapsible.Content>
 			</KCollapsible>
-			<Field name="Shadow" icon={<IconCapShadow class="size-4" />}>
+			<Field
+				name={t("editor.config.background.shadowField")}
+				icon={<IconCapShadow class="size-4" />}
+			>
 				<Slider
 					value={[project.background.shadow ?? 0]}
 					onChange={(v) => {
@@ -2581,20 +2739,46 @@ function BackgroundConfig(props: {
 }
 
 function CameraConfig(props: { scrollRef: HTMLDivElement }) {
+	const { t } = useI18n();
 	const { project, setProject } = useEditorContext();
 	const cameraPositionValue = createMemo(
 		() => `${project.camera.position.x}:${project.camera.position.y}`,
 	);
+
+	const cameraShapeLabel = (shape: CameraShape) =>
+		shape === "square"
+			? t("editor.config.camera.shapeOptions.square")
+			: t("editor.config.camera.shapeOptions.source");
+
+	const backgroundBlurLabel = (mode: BackgroundBlurMode) => {
+		switch (mode) {
+			case "off":
+				return t("editor.config.camera.blurModes.off");
+			case "light":
+				return t("editor.config.camera.blurModes.light");
+			case "heavy":
+				return t("editor.config.camera.blurModes.heavy");
+		}
+	};
+
+	const cameraBlurOptions = () => [
+		{ name: backgroundBlurLabel("off"), value: "off" as const },
+		{ name: backgroundBlurLabel("light"), value: "light" as const },
+		{ name: backgroundBlurLabel("heavy"), value: "heavy" as const },
+	];
 
 	return (
 		<KTabs.Content
 			value={TAB_IDS.camera}
 			class="flex flex-col flex-1 gap-6 p-4 min-h-0"
 		>
-			<Field icon={<IconCapCamera class="size-4" />} name="Camera">
+			<Field
+				icon={<IconCapCamera class="size-4" />}
+				name={t("editor.config.camera.cameraField")}
+			>
 				<div class="flex flex-col gap-6">
 					<div>
-						<Subfield name="Position" />
+						<Subfield name={t("editor.config.camera.position")} />
 						<KRadioGroup
 							value={cameraPositionValue()}
 							onChange={(v) => {
@@ -2649,38 +2833,29 @@ function CameraConfig(props: { scrollRef: HTMLDivElement }) {
 							</For>
 						</KRadioGroup>
 					</div>
-					<Subfield name="Hide Camera">
+					<Subfield name={t("editor.config.camera.hideCamera")}>
 						<Toggle
 							checked={project.camera.hide}
 							onChange={(hide) => setProject("camera", "hide", hide)}
 						/>
 					</Subfield>
-					<Subfield name="Mirror Camera">
+					<Subfield name={t("editor.config.camera.mirrorCamera")}>
 						<Toggle
 							checked={project.camera.mirror}
 							onChange={(mirror) => setProject("camera", "mirror", mirror)}
 						/>
 					</Subfield>
-					<Subfield name="Background Blur">
+					<Subfield name={t("editor.config.camera.backgroundBlur")}>
 						<KSelect<{ name: string; value: BackgroundBlurMode }>
-							options={[
-								{ name: "Off", value: "off" },
-								{ name: "Light Blur", value: "light" },
-								{ name: "Heavy Blur", value: "heavy" },
-							]}
+							options={cameraBlurOptions()}
 							optionValue="value"
 							optionTextValue="name"
 							value={
-								(
-									[
-										{ name: "Off", value: "off" },
-										{ name: "Light Blur", value: "light" },
-										{ name: "Heavy Blur", value: "heavy" },
-									] as const
-								).find(
+								cameraBlurOptions().find(
 									(v) =>
-										v.value === (project.camera.backgroundBlur?.mode ?? "off"),
-								) ?? { name: "Off", value: "off" }
+										v.value ===
+										(project.camera.backgroundBlur?.mode ?? "off"),
+								) ?? cameraBlurOptions()[0]
 							}
 							onChange={(v) => {
 								if (v)
@@ -2695,7 +2870,7 @@ function CameraConfig(props: { scrollRef: HTMLDivElement }) {
 									item={props.item}
 								>
 									<KSelect.ItemLabel class="flex-1">
-										{props.item.rawValue.name}
+										{backgroundBlurLabel(props.item.rawValue.value)}
 									</KSelect.ItemLabel>
 								</MenuItem>
 							)}
@@ -2705,7 +2880,13 @@ function CameraConfig(props: { scrollRef: HTMLDivElement }) {
 									name: string;
 									value: string;
 								}> class="flex-1 text-sm text-left truncate text-(--gray-500) font-normal">
-									{(state) => <span>{state.selectedOption().name}</span>}
+									{(state) => (
+										<span>
+											{backgroundBlurLabel(
+												state.selectedOption().value as BackgroundBlurMode,
+											)}
+										</span>
+									)}
 								</KSelect.Value>
 								<KSelect.Icon<ValidComponent>
 									as={(iconProps) => (
@@ -2729,7 +2910,7 @@ function CameraConfig(props: { scrollRef: HTMLDivElement }) {
 							</KSelect.Portal>
 						</KSelect>
 					</Subfield>
-					<Subfield name="Shape">
+					<Subfield name={t("editor.config.camera.shape")}>
 						<KSelect<{ name: string; value: CameraShape }>
 							options={CAMERA_SHAPES}
 							optionValue="value"
@@ -2747,7 +2928,7 @@ function CameraConfig(props: { scrollRef: HTMLDivElement }) {
 									item={props.item}
 								>
 									<KSelect.ItemLabel class="flex-1">
-										{props.item.rawValue.name}
+										{cameraShapeLabel(props.item.rawValue.value)}
 									</KSelect.ItemLabel>
 								</MenuItem>
 							)}
@@ -2757,7 +2938,13 @@ function CameraConfig(props: { scrollRef: HTMLDivElement }) {
 									name: string;
 									value: StereoMode;
 								}> class="flex-1 text-sm text-left truncate text-(--gray-500) font-normal">
-									{(state) => <span>{state.selectedOption().name}</span>}
+									{(state) => (
+										<span>
+											{cameraShapeLabel(
+												state.selectedOption().value as CameraShape,
+											)}
+										</span>
+									)}
 								</KSelect.Value>
 								<KSelect.Icon<ValidComponent>
 									as={(props) => (
@@ -2792,7 +2979,10 @@ function CameraConfig(props: { scrollRef: HTMLDivElement }) {
 			</Field>
 			{/** Dashed divider */}
 			<div class="w-full border-t border-dashed border-gray-5" />
-			<Field name="Size" icon={<IconCapEnlarge class="size-4" />}>
+			<Field
+				name={t("editor.config.camera.sizeField")}
+				icon={<IconCapEnlarge class="size-4" />}
+			>
 				<Slider
 					value={[project.camera.size]}
 					onChange={(v) => setProject("camera", "size", v[0])}
@@ -2802,7 +2992,10 @@ function CameraConfig(props: { scrollRef: HTMLDivElement }) {
 					formatTooltip="%"
 				/>
 			</Field>
-			<Field name="Size During Zoom" icon={<IconCapEnlarge class="size-4" />}>
+			<Field
+				name={t("editor.config.camera.sizeDuringZoomField")}
+				icon={<IconCapEnlarge class="size-4" />}
+			>
 				<Slider
 					value={[project.camera.zoomSize ?? 60]}
 					onChange={(v) => setProject("camera", "zoomSize", v[0])}
@@ -2812,7 +3005,7 @@ function CameraConfig(props: { scrollRef: HTMLDivElement }) {
 					formatTooltip="%"
 				/>
 			</Field>
-			<Subfield name="Keep original size during zoom">
+			<Subfield name={t("editor.config.camera.keepOriginalSize")}>
 				<Toggle
 					checked={
 						(project.camera.scaleDuringZoom ??
@@ -2827,7 +3020,10 @@ function CameraConfig(props: { scrollRef: HTMLDivElement }) {
 					}
 				/>
 			</Subfield>
-			<Field name="Rounded Corners" icon={<IconCapCorners class="size-4" />}>
+			<Field
+				name={t("editor.config.camera.roundedCornersField")}
+				icon={<IconCapCorners class="size-4" />}
+			>
 				<div class="flex flex-col gap-3">
 					<Slider
 						value={[project.camera.rounding ?? 0]}
@@ -2838,13 +3034,16 @@ function CameraConfig(props: { scrollRef: HTMLDivElement }) {
 						formatTooltip="%"
 					/>
 					<CornerStyleSelect
-						label="Corner Style"
+						label={t("editor.config.camera.cornerStyle")}
 						value={project.camera.roundingType}
 						onChange={(value) => setProject("camera", "roundingType", value)}
 					/>
 				</div>
 			</Field>
-			<Field name="Shadow" icon={<IconCapShadow class="size-4" />}>
+			<Field
+				name={t("editor.config.camera.shadowField")}
+				icon={<IconCapShadow class="size-4" />}
+			>
 				<div class="space-y-8">
 					<Slider
 						value={[project.camera.shadow ?? 0]}
@@ -3054,9 +3253,25 @@ function TextSegmentConfig(props: {
 	segment: TextSegment;
 	brandColorSwatches: OrganizationBrandColorSwatch[];
 }) {
+	const { t } = useI18n();
 	const { setProject } = useEditorContext();
 	const clampNumber = (value: number, min: number, max: number) =>
 		Math.min(Math.max(Number.isFinite(value) ? value : min), max);
+
+	const fontWeightLabel = (weight: number) => {
+		if (weight === 400) return t("editor.config.textSegment.fontWeights.normal");
+		if (weight === 500) return t("editor.config.textSegment.fontWeights.medium");
+		if (weight === 700) return t("editor.config.textSegment.fontWeights.bold");
+		return t("editor.config.textSegment.fontWeights.custom");
+	};
+	const fontWeightOption = (weight: number) => {
+		if (weight === 400) return t("editor.config.textSegment.fontWeights.normal");
+		if (weight === 500) return t("editor.config.textSegment.fontWeights.medium");
+		if (weight === 700) return t("editor.config.textSegment.fontWeights.bold");
+		return t("editor.config.textSegment.fontWeights.customValue", {
+			weight,
+		});
+	};
 
 	const updateSegment = (fn: (segment: TextSegment) => void) => {
 		setProject(
@@ -3073,7 +3288,9 @@ function TextSegmentConfig(props: {
 	return (
 		<div class="space-y-4">
 			<Field
-				name={`Text ${props.segmentIndex + 1}`}
+				name={t("editor.config.textSegment.title", {
+					n: props.segmentIndex + 1,
+				})}
 				icon={<IconLucideType class="size-4" />}
 			>
 				<div class="flex items-center gap-3">
@@ -3087,7 +3304,9 @@ function TextSegmentConfig(props: {
 						}
 					/>
 					<div class="flex flex-col items-center gap-2">
-						<span class="text-xs text-gray-11">Enabled</span>
+						<span class="text-xs text-gray-11">
+							{t("editor.config.textSegment.enabled")}
+						</span>
 						<Toggle
 							checked={props.segment.enabled}
 							onChange={(value) =>
@@ -3099,7 +3318,10 @@ function TextSegmentConfig(props: {
 					</div>
 				</div>
 			</Field>
-			<Field name="Size" icon={<IconCapEnlarge class="size-4" />}>
+			<Field
+				name={t("editor.config.textSegment.sizeField")}
+				icon={<IconCapEnlarge class="size-4" />}
+			>
 				<Slider
 					value={[clampNumber(props.segment.fontSize, 8, 200)]}
 					onChange={([value]) =>
@@ -3126,18 +3348,30 @@ function TextSegmentConfig(props: {
 					step={1}
 				/>
 			</Field>
-			<Field name="Style" icon={<IconLucideSparkles class="size-4" />}>
+			<Field
+				name={t("editor.config.textSegment.styleField")}
+				icon={<IconLucideSparkles class="size-4" />}
+			>
 				<div class="flex flex-col gap-2">
 					<KSelect
 						options={[
-							{ label: "Normal", value: 400 },
-							{ label: "Medium", value: 500 },
-							{ label: "Bold", value: 700 },
+							{
+								label: t("editor.config.textSegment.fontWeights.normal"),
+								value: 400,
+							},
+							{
+								label: t("editor.config.textSegment.fontWeights.medium"),
+								value: 500,
+							},
+							{
+								label: t("editor.config.textSegment.fontWeights.bold"),
+								value: 700,
+							},
 						]}
 						optionValue="value"
 						optionTextValue="label"
 						value={{
-							label: "Custom",
+							label: fontWeightLabel(props.segment.fontWeight),
 							value: props.segment.fontWeight,
 						}}
 						onChange={(value) => {
@@ -3166,14 +3400,7 @@ function TextSegmentConfig(props: {
 									const selected = state.selectedOption();
 									if (selected) return selected.label;
 									const weight = props.segment.fontWeight;
-									const option = [
-										{ label: "Normal", value: 400 },
-										{ label: "Medium", value: 500 },
-										{ label: "Bold", value: 700 },
-									].find((o) => o.value === weight);
-									if (option) return option.label;
-									if (weight != null) return `Custom (${weight})`;
-									return "Normal";
+									return fontWeightOption(weight);
 								}}
 							</KSelect.Value>
 							<KSelect.Icon>
@@ -3194,7 +3421,9 @@ function TextSegmentConfig(props: {
 					</KSelect>
 
 					<div class="flex items-center justify-between pt-1">
-						<span class="text-xs text-gray-11">Italic</span>
+						<span class="text-xs text-gray-11">
+							{t("editor.config.textSegment.italic")}
+						</span>
 						<Toggle
 							checked={props.segment.italic}
 							onChange={(value) =>
@@ -3206,7 +3435,10 @@ function TextSegmentConfig(props: {
 					</div>
 				</div>
 			</Field>
-			<Field name="Color" icon={<IconLucidePalette class="size-4" />}>
+			<Field
+				name={t("editor.config.textSegment.colorField")}
+				icon={<IconLucidePalette class="size-4" />}
+			>
 				<HexColorInput
 					value={props.segment.color}
 					brandColorSwatches={props.brandColorSwatches}
@@ -3217,7 +3449,10 @@ function TextSegmentConfig(props: {
 					}
 				/>
 			</Field>
-			<Field name="Fade Duration" icon={<IconLucideTimer class="size-4" />}>
+			<Field
+				name={t("editor.config.textSegment.fadeDuration")}
+				icon={<IconLucideTimer class="size-4" />}
+			>
 				<Slider
 					value={[clampNumber(props.segment.fadeDuration ?? 0.15, 0, 1)]}
 					onChange={([value]) =>
@@ -3239,6 +3474,7 @@ function KeyboardSegmentConfig(props: {
 	segmentIndex: number;
 	segment: KeyboardTrackSegment;
 }) {
+	const { t } = useI18n();
 	const { setProject } = useEditorContext();
 
 	const updateSegment = (fn: (segment: KeyboardTrackSegment) => void) => {
@@ -3256,7 +3492,9 @@ function KeyboardSegmentConfig(props: {
 	return (
 		<div class="space-y-4">
 			<Field
-				name={`Keyboard ${props.segmentIndex + 1}`}
+				name={t("editor.config.keyboardSegment.title", {
+					n: props.segmentIndex + 1,
+				})}
 				icon={<IconLucideKeyboard class="size-4" />}
 			>
 				<Input
@@ -3269,12 +3507,15 @@ function KeyboardSegmentConfig(props: {
 					}
 				/>
 			</Field>
-			<Field name="Timing" icon={<IconLucideTimer class="size-4" />}>
+			<Field
+				name={t("editor.config.keyboardSegment.timingField")}
+				icon={<IconLucideTimer class="size-4" />}
+			>
 				<div class="rounded-xl border border-gray-3 bg-gray-2/70 p-3 space-y-3">
 					<div class="grid grid-cols-[1fr_auto_1fr] gap-2 items-start">
 						<div class="rounded-lg border border-gray-3 bg-gray-1/80 p-2.5 space-y-2">
 							<div class="flex items-center justify-between text-[10px] uppercase tracking-[0.08em] text-gray-10">
-								<span>Start</span>
+								<span>{t("editor.config.keyboardSegment.start")}</span>
 								<span>{formatTime(props.segment.start)}</span>
 							</div>
 							<Input
@@ -3289,10 +3530,12 @@ function KeyboardSegmentConfig(props: {
 								}
 							/>
 						</div>
-						<div class="pt-10 text-xs font-medium text-gray-10">to</div>
+						<div class="pt-10 text-xs font-medium text-gray-10">
+							{t("editor.config.keyboardSegment.to")}
+						</div>
 						<div class="rounded-lg border border-gray-3 bg-gray-1/80 p-2.5 space-y-2">
 							<div class="flex items-center justify-between text-[10px] uppercase tracking-[0.08em] text-gray-10">
-								<span>End</span>
+								<span>{t("editor.config.keyboardSegment.end")}</span>
 								<span>{formatTime(props.segment.end)}</span>
 							</div>
 							<Input
@@ -3309,14 +3552,17 @@ function KeyboardSegmentConfig(props: {
 						</div>
 					</div>
 					<div class="flex items-center justify-between rounded-lg bg-gray-1/70 px-3 py-2 text-xs text-gray-11">
-						<span>Duration</span>
+						<span>{t("editor.config.keyboardSegment.duration")}</span>
 						<span class="font-medium text-gray-12">
 							{Math.max(0, props.segment.end - props.segment.start).toFixed(2)}s
 						</span>
 					</div>
 				</div>
 			</Field>
-			<Field name="Fade Duration" icon={<IconLucideTimer class="size-4" />}>
+			<Field
+				name={t("editor.config.keyboardSegment.fadeDuration")}
+				icon={<IconLucideTimer class="size-4" />}
+			>
 				<Slider
 					value={[(props.segment.fadeDurationOverride ?? 0.15) * 100]}
 					onChange={([value]) =>
@@ -3337,6 +3583,7 @@ function CaptionSegmentConfig(props: {
 	segmentIndex: number;
 	segment: CaptionTrackSegment;
 }) {
+	const { t } = useI18n();
 	const { setProject } = useEditorContext();
 
 	const updateSegment = (fn: (segment: CaptionTrackSegment) => void) => {
@@ -3364,7 +3611,9 @@ function CaptionSegmentConfig(props: {
 	return (
 		<div class="space-y-4">
 			<Field
-				name={`Transcript ${props.segmentIndex + 1}`}
+				name={t("editor.config.captionSegment.title", {
+					n: props.segmentIndex + 1,
+				})}
 				icon={<IconCapMessageBubble />}
 			>
 				<textarea
@@ -3383,12 +3632,15 @@ function CaptionSegmentConfig(props: {
 					}
 				/>
 			</Field>
-			<Field name="Timing" icon={<IconLucideTimer class="size-4" />}>
+			<Field
+				name={t("editor.config.captionSegment.timingField")}
+				icon={<IconLucideTimer class="size-4" />}
+			>
 				<div class="rounded-xl border border-gray-3 bg-gray-2/70 p-3 space-y-3">
 					<div class="grid grid-cols-[1fr_auto_1fr] gap-2 items-start">
 						<div class="rounded-lg border border-gray-3 bg-gray-1/80 p-2.5 space-y-2">
 							<div class="flex items-center justify-between text-[10px] uppercase tracking-[0.08em] text-gray-10">
-								<span>Start</span>
+								<span>{t("editor.config.captionSegment.start")}</span>
 								<span>{formatTime(props.segment.start)}</span>
 							</div>
 							<Input
@@ -3408,10 +3660,12 @@ function CaptionSegmentConfig(props: {
 								}
 							/>
 						</div>
-						<div class="pt-10 text-xs font-medium text-gray-10">to</div>
+						<div class="pt-10 text-xs font-medium text-gray-10">
+							{t("editor.config.captionSegment.to")}
+						</div>
 						<div class="rounded-lg border border-gray-3 bg-gray-1/80 p-2.5 space-y-2">
 							<div class="flex items-center justify-between text-[10px] uppercase tracking-[0.08em] text-gray-10">
-								<span>End</span>
+								<span>{t("editor.config.captionSegment.end")}</span>
 								<span>{formatTime(props.segment.end)}</span>
 							</div>
 							<Input
@@ -3433,7 +3687,7 @@ function CaptionSegmentConfig(props: {
 						</div>
 					</div>
 					<div class="flex items-center justify-between rounded-lg bg-gray-1/70 px-3 py-2 text-xs text-gray-11">
-						<span>Duration</span>
+						<span>{t("editor.config.captionSegment.duration")}</span>
 						<span class="font-medium text-gray-12">
 							{Math.max(0, props.segment.end - props.segment.start).toFixed(2)}s
 						</span>
@@ -3448,6 +3702,7 @@ function MaskSegmentConfig(props: {
 	segmentIndex: number;
 	segment: MaskSegment;
 }) {
+	const { t } = useI18n();
 	const { setProject, editorState } = useEditorContext();
 
 	const updateSegment = (fn: (segment: MaskSegment) => void) => {
@@ -3508,7 +3763,9 @@ function MaskSegmentConfig(props: {
 	return (
 		<div class="space-y-4">
 			<Field
-				name={`Mask ${props.segmentIndex + 1}`}
+				name={t("editor.config.maskSegment.title", {
+					n: props.segmentIndex + 1,
+				})}
 				icon={<IconLucideBoxSelect class="size-4" />}
 			>
 				<div class="flex items-center justify-between gap-4">
@@ -3529,8 +3786,14 @@ function MaskSegmentConfig(props: {
 						}
 					>
 						{[
-							{ value: "sensitive", label: "Sensitive" },
-							{ value: "highlight", label: "Highlight" },
+							{
+								value: "sensitive",
+								label: t("editor.config.maskSegment.maskTypes.sensitive"),
+							},
+							{
+								value: "highlight",
+								label: t("editor.config.maskSegment.maskTypes.highlight"),
+							},
 						].map((option) => (
 							<RadioGroup.Item
 								value={option.value}
@@ -3545,7 +3808,9 @@ function MaskSegmentConfig(props: {
 						))}
 					</RadioGroup>
 					<div class="flex items-center gap-2">
-						<span class="text-xs text-gray-11">Enabled</span>
+						<span class="text-xs text-gray-11">
+							{t("editor.config.maskSegment.enabled")}
+						</span>
 						<Toggle
 							checked={props.segment.enabled}
 							onChange={(value) =>
@@ -3558,7 +3823,10 @@ function MaskSegmentConfig(props: {
 				</div>
 			</Field>
 			<Show when={props.segment.maskType === "sensitive"}>
-				<Field name="Intensity" icon={<IconLucideGauge class="size-4" />}>
+				<Field
+					name={t("editor.config.maskSegment.intensityField")}
+					icon={<IconLucideGauge class="size-4" />}
+				>
 					<Slider
 						value={[props.segment.opacity]}
 						onChange={([v]) => setIntensity(v)}
@@ -3570,7 +3838,10 @@ function MaskSegmentConfig(props: {
 				</Field>
 			</Show>
 			<Show when={props.segment.maskType === "sensitive"}>
-				<Field name="Pixelation" icon={<IconLucideGrid class="size-4" />}>
+				<Field
+					name={t("editor.config.maskSegment.pixelationField")}
+					icon={<IconLucideGrid class="size-4" />}
+				>
 					<Slider
 						value={[props.segment.pixelation]}
 						onChange={([v]) =>
@@ -3585,7 +3856,10 @@ function MaskSegmentConfig(props: {
 				</Field>
 			</Show>
 			<Show when={props.segment.maskType === "highlight"}>
-				<Field name="Outside Darkness" icon={<IconLucideMoon class="size-4" />}>
+				<Field
+					name={t("editor.config.maskSegment.outsideDarknessField")}
+					icon={<IconLucideMoon class="size-4" />}
+				>
 					<Slider
 						value={[props.segment.darkness]}
 						onChange={([v]) =>
@@ -3600,7 +3874,10 @@ function MaskSegmentConfig(props: {
 				</Field>
 			</Show>
 			<Show when={props.segment.maskType === "highlight"}>
-				<Field name="Fade Duration" icon={<IconLucideTimer class="size-4" />}>
+				<Field
+					name={t("editor.config.maskSegment.fadeDuration")}
+					icon={<IconLucideTimer class="size-4" />}
+				>
 					<Slider
 						value={[props.segment.fadeDuration ?? 0.15]}
 						onChange={([v]) =>
@@ -3623,6 +3900,7 @@ function ZoomSegmentPreview(props: {
 	segmentIndex: number;
 	segment: ZoomSegment;
 }) {
+	const { t } = useI18n();
 	const { project, editorInstance } = useEditorContext();
 
 	const start = createMemo(() => props.segment.start);
@@ -3653,14 +3931,14 @@ function ZoomSegmentPreview(props: {
 	});
 
 	createEffect(() => {
-		const t = relativeTime();
-		if (t === undefined) return;
+		const relTime = relativeTime();
+		if (relTime === undefined) return;
 
 		if (video.readyState >= 2) {
-			video.currentTime = t;
+			video.currentTime = relTime;
 		} else {
 			const handleCanPlay = () => {
-				video.currentTime = t;
+				video.currentTime = relTime;
 				video.removeEventListener("canplay", handleCanPlay);
 			};
 			video.addEventListener("canplay", handleCanPlay);
@@ -3712,7 +3990,9 @@ function ZoomSegmentPreview(props: {
 		<>
 			<div class="space-y-1.5">
 				<div class="text-xs font-medium text-center text-gray-12">
-					Zoom {props.segmentIndex + 1}
+					{t("editor.config.zoom.previewTitle", {
+						n: props.segmentIndex + 1,
+					})}
 				</div>
 				<div class="overflow-hidden relative rounded-sm border aspect-video border-gray-3 bg-gray-3">
 					<canvas
@@ -3724,7 +4004,7 @@ function ZoomSegmentPreview(props: {
 					/>
 					<Show when={!loaded()}>
 						<p class="flex absolute inset-0 justify-center items-center text-xs text-gray-11">
-							Loading...
+							{t("editor.config.zoom.loading")}
 						</p>
 					</Show>
 				</div>
@@ -3741,6 +4021,7 @@ function ZoomSegmentConfig(props: {
 	segmentIndex: number;
 	segment: ZoomSegment;
 }) {
+	const { t } = useI18n();
 	const generalSettings = generalSettingsStore.createQuery();
 	const { project, setProject, editorInstance, projectHistory } =
 		useEditorContext();
@@ -3755,7 +4036,9 @@ function ZoomSegmentConfig(props: {
 	return (
 		<>
 			<Field
-				name={`Zoom ${props.segmentIndex + 1}`}
+				name={t("editor.config.zoom.configTitle", {
+					n: props.segmentIndex + 1,
+				})}
 				icon={<IconLucideSearch />}
 			>
 				<Slider
@@ -3775,7 +4058,7 @@ function ZoomSegmentConfig(props: {
 					formatTooltip="x"
 				/>
 			</Field>
-			<Field name="Zoom Mode" icon={<IconCapSettings />}>
+			<Field name={t("editor.config.zoom.zoomMode")} icon={<IconCapSettings />}>
 				<KTabs
 					class="space-y-6"
 					value={props.segment.mode === "auto" ? "auto" : "manual"}
@@ -3795,13 +4078,13 @@ function ZoomSegmentConfig(props: {
 							class="z-10 flex-1 py-2.5 text-gray-11 transition-colors duration-100 outline-hidden data-selected:text-gray-12 peer"
 							disabled={!generalSettings.data?.custom_cursor_capture2}
 						>
-							Auto
+							{t("editor.config.zoom.auto")}
 						</KTabs.Trigger>
 						<KTabs.Trigger
 							value="manual"
 							class="z-10 flex-1 py-2.5 text-gray-11 transition-colors duration-100 outline-hidden data-selected:text-gray-12 peer"
 						>
-							Manual
+							{t("editor.config.zoom.manual")}
 						</KTabs.Trigger>
 						<KTabs.Indicator class="absolute flex p-px inset-0 transition-transform peer-focus-visible:outline-solid outline-2 outline-blue-9 outline-offset-2 rounded-[0.6rem] overflow-hidden">
 							<div class="flex-1 bg-gray-3" />
@@ -3858,16 +4141,16 @@ function ZoomSegmentConfig(props: {
 								});
 
 								createEffect(() => {
-									const t = relativeTime();
-									if (t === undefined) return;
+									const relTime = relativeTime();
+									if (relTime === undefined) return;
 
 									// Ensure video is ready before seeking
 									if (video.readyState >= 2) {
-										video.currentTime = t;
+										video.currentTime = relTime;
 									} else {
 										// Wait for video to be ready, then seek
 										const handleCanPlay = () => {
-											video.currentTime = t;
+											video.currentTime = relTime;
 											video.removeEventListener("canplay", handleCanPlay);
 										};
 										video.addEventListener("canplay", handleCanPlay);
@@ -4018,8 +4301,8 @@ function ZoomSegmentConfig(props: {
 											<Show when={!loaded()}>
 												<div class="flex absolute inset-0 justify-center items-center bg-gray-2">
 													<div class="text-sm text-gray-11">
-														Loading preview...
-													</div>
+													{t("editor.config.zoom.loadingPreview")}
+												</div>
 												</div>
 											</Show>
 										</div>
@@ -4038,6 +4321,7 @@ function ClipSegmentConfig(props: {
 	segmentIndex: number;
 	segment: TimelineSegment;
 }) {
+	const { t } = useI18n();
 	const { setProject, setEditorState, project, projectActions, meta } =
 		useEditorContext();
 
@@ -4074,7 +4358,7 @@ function ClipSegmentConfig(props: {
 						onClick={() => setEditorState("timeline", "selection", null)}
 						leftIcon={<IconLucideCheck />}
 					>
-						Done
+						{t("editor.config.selection.done")}
 					</EditorButton>
 				</div>
 				<EditorButton
@@ -4085,20 +4369,25 @@ function ClipSegmentConfig(props: {
 					disabled={(project.timeline?.segments.length ?? 0) < 2}
 					leftIcon={<IconCapTrash />}
 				>
-					Delete
+					{t("editor.config.selection.delete")}
 				</EditorButton>
 			</div>
 
 			<div class="space-y-0.5">
-				<h3 class="font-medium text-gray-12">Segment Settings</h3>
+				<h3 class="font-medium text-gray-12">
+					{t("editor.config.clip.segmentSettings")}
+				</h3>
 				<p class="text-gray-11">
-					These settings apply to only the selected segment
+					{t("editor.config.clip.segmentSettingsDesc")}
 				</p>
 			</div>
 
-			<Field name="Speed" icon={<IconLucideFastForward class="size-4" />}>
+			<Field
+				name={t("editor.config.clip.speedField")}
+				icon={<IconLucideFastForward class="size-4" />}
+			>
 				<p class="text-gray-11 -mt-3">
-					Modifying speed will mute this segment's audio.
+					{t("editor.config.clip.speedMuteNote")}
 				</p>
 
 				<KRadioGroup
@@ -4124,15 +4413,17 @@ function ClipSegmentConfig(props: {
 			</Field>
 
 			<div class="space-y-0.5 pt-2">
-				<h3 class="font-medium text-gray-12">Clip Settings</h3>
+				<h3 class="font-medium text-gray-12">
+					{t("editor.config.clip.clipSettings")}
+				</h3>
 				<p class="text-gray-11">
-					These settings apply to all segments for the current clip
+					{t("editor.config.clip.clipSettingsDesc")}
 				</p>
 			</div>
 
 			{meta().hasSystemAudio && (
 				<SourceOffsetField
-					name="System Audio Offset"
+					name={t("editor.config.clip.systemAudioOffset")}
 					value={offsets().system_audio}
 					onChange={(offset) => {
 						setOffset("system_audio", offset);
@@ -4141,7 +4432,7 @@ function ClipSegmentConfig(props: {
 			)}
 			{meta().hasMicrophone && (
 				<SourceOffsetField
-					name="Microphone Offset"
+					name={t("editor.config.clip.microphoneOffset")}
 					value={offsets().mic}
 					onChange={(offset) => {
 						setOffset("mic", offset);
@@ -4150,7 +4441,7 @@ function ClipSegmentConfig(props: {
 			)}
 			{meta().hasCamera && (
 				<SourceOffsetField
-					name="Camera Offset"
+					name={t("editor.config.clip.cameraOffset")}
 					value={offsets().camera}
 					onChange={(offset) => {
 						setOffset("camera", offset);
@@ -4286,6 +4577,7 @@ function SceneSegmentConfig(props: {
 	segmentIndex: number;
 	segment: SceneSegment;
 }) {
+	const { t } = useI18n();
 	const { setProject, setEditorState, projectActions, editorInstance } =
 		useEditorContext();
 
@@ -4295,13 +4587,13 @@ function SceneSegmentConfig(props: {
 	const description = () => {
 		switch (props.segment.mode) {
 			case "cameraOnly":
-				return "Shows only the camera feed";
+				return t("editor.config.scene.descriptions.cameraOnly");
 			case "hideCamera":
-				return "Shows only the screen recording";
+				return t("editor.config.scene.descriptions.hideCamera");
 			case "splitScreen":
-				return "Screen and camera side by side (auto-stacks in portrait)";
+				return t("editor.config.scene.descriptions.splitScreen");
 			default:
-				return "Shows both screen and camera";
+				return t("editor.config.scene.descriptions.default");
 		}
 	};
 
@@ -4320,7 +4612,7 @@ function SceneSegmentConfig(props: {
 						onClick={() => setEditorState("timeline", "selection", null)}
 						leftIcon={<IconLucideCheck />}
 					>
-						Done
+						{t("editor.config.selection.done")}
 					</EditorButton>
 				</div>
 				<EditorButton
@@ -4330,10 +4622,13 @@ function SceneSegmentConfig(props: {
 					}}
 					leftIcon={<IconCapTrash />}
 				>
-					Delete
+					{t("editor.config.selection.delete")}
 				</EditorButton>
 			</div>
-			<Field name="Camera Layout" icon={<IconLucideLayout />}>
+			<Field
+				name={t("editor.config.scene.cameraLayout")}
+				icon={<IconLucideLayout />}
+			>
 				<KTabs
 					class="space-y-3"
 					value={props.segment.mode || "default"}
@@ -4363,15 +4658,15 @@ function SceneSegmentConfig(props: {
 					<KTabs.List class="grid grid-cols-2 gap-2">
 						<KTabs.Trigger value="default" class={SCENE_MODE_TRIGGER_CLASS}>
 							<IconLucideMonitor class="size-3.5" />
-							Default
+							{t("editor.config.scene.modes.default")}
 						</KTabs.Trigger>
 						<KTabs.Trigger value="cameraOnly" class={SCENE_MODE_TRIGGER_CLASS}>
 							<IconLucideVideo class="size-3.5" />
-							Camera Only
+							{t("editor.config.scene.modes.cameraOnly")}
 						</KTabs.Trigger>
 						<KTabs.Trigger value="hideCamera" class={SCENE_MODE_TRIGGER_CLASS}>
 							<IconLucideEyeOff class="size-3.5" />
-							Hide Camera
+							{t("editor.config.scene.modes.hideCamera")}
 						</KTabs.Trigger>
 						<KTabs.Trigger
 							value="splitScreen"
@@ -4379,7 +4674,7 @@ function SceneSegmentConfig(props: {
 							class={SCENE_MODE_TRIGGER_CLASS}
 						>
 							<IconLucideColumns2 class="size-3.5" />
-							Split Screen
+							{t("editor.config.scene.modes.splitScreen")}
 						</KTabs.Trigger>
 					</KTabs.List>
 					<div class="p-2.5 rounded-md bg-gray-2 border border-gray-3">
@@ -4388,9 +4683,12 @@ function SceneSegmentConfig(props: {
 				</KTabs>
 			</Field>
 
-			<Field name="Transition" icon={<IconLucideTimer class="size-4" />}>
+			<Field
+				name={t("editor.config.scene.transition")}
+				icon={<IconLucideTimer class="size-4" />}
+			>
 				<div class="flex flex-col gap-3">
-					<Subfield name="In">
+					<Subfield name={t("editor.config.scene.transitionIn")}>
 						<Slider
 							class="flex-1 ml-4"
 							value={[props.segment.transitionIn ?? DEFAULT_SCENE_TRANSITION]}
@@ -4409,7 +4707,7 @@ function SceneSegmentConfig(props: {
 							formatTooltip={(v) => `${v.toFixed(2)}s`}
 						/>
 					</Subfield>
-					<Subfield name="Out">
+					<Subfield name={t("editor.config.scene.transitionOut")}>
 						<Slider
 							class="flex-1 ml-4"
 							value={[props.segment.transitionOut ?? DEFAULT_SCENE_TRANSITION]}
@@ -4433,7 +4731,10 @@ function SceneSegmentConfig(props: {
 
 			<Show when={props.segment.mode === "splitScreen"}>
 				<div class="w-full border-t border-dashed border-gray-5" />
-				<Field name="Screen Zoom" icon={<IconCapEnlarge class="size-4" />}>
+				<Field
+					name={t("editor.config.scene.screenZoom")}
+					icon={<IconCapEnlarge class="size-4" />}
+				>
 					<Slider
 						value={[split().screenZoom * 100]}
 						onChange={(v) => updateSplit({ screenZoom: v[0] / 100 })}
@@ -4443,14 +4744,20 @@ function SceneSegmentConfig(props: {
 						formatTooltip="%"
 					/>
 				</Field>
-				<Field name="Screen Position" icon={<IconLucideMove class="size-4" />}>
+				<Field
+					name={t("editor.config.scene.screenPosition")}
+					icon={<IconLucideMove class="size-4" />}
+				>
 					<PositionPad
 						value={() => split().screenPosition}
 						onChange={(pos) => updateSplit({ screenPosition: pos })}
 					/>
 				</Field>
 				<div class="w-full border-t border-dashed border-gray-5" />
-				<Field name="Camera Zoom" icon={<IconCapEnlarge class="size-4" />}>
+				<Field
+					name={t("editor.config.scene.cameraZoom")}
+					icon={<IconCapEnlarge class="size-4" />}
+				>
 					<Slider
 						value={[split().cameraZoom * 100]}
 						onChange={(v) => updateSplit({ cameraZoom: v[0] / 100 })}
@@ -4460,7 +4767,10 @@ function SceneSegmentConfig(props: {
 						formatTooltip="%"
 					/>
 				</Field>
-				<Field name="Camera Position" icon={<IconLucideMove class="size-4" />}>
+				<Field
+					name={t("editor.config.scene.cameraPosition")}
+					icon={<IconLucideMove class="size-4" />}
+				>
 					<PositionPad
 						value={() => split().cameraPosition}
 						onChange={(pos) => updateSplit({ cameraPosition: pos })}

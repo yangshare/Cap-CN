@@ -5,9 +5,9 @@
 ## 一、当前状态总览
 
 - **提交基线**：`8e983aa05`（分支 `CN`），65 文件，+5076 / −1347。
-- **已完成区域**：基础设施 + 主界面、设置、录制流程、截图编辑器。
-- **剩余区域**：`editor/` 视频编辑器（约 30 个文件，完全未迁移）。
-- **未纳入提交**：`CLAUDE.md`（superpowers-zh 框架安装，与 i18n 无关，留在工作区另行处理）。
+- **已完成区域**：基础设施 + 主界面、设置、录制流程、截图编辑器、**`editor/` 视频编辑器（已完成，详见第十节）**。
+- **剩余区域**：无。桌面端面向用户的 UI 文本已全面接入 i18n。
+- **未纳入提交**：`CLAUDE.md`（superpowers-zh 框架安装，与 i18n 无关，留在工作区另行处理）；editor 迁移的全部改动（32 个 `.tsx` + `en.ts`/`zh.ts`）目前**留在工作区未提交**，待用户确认后提交。
 
 ## 二、i18n 架构（已就绪，不要改）
 
@@ -42,10 +42,10 @@ t("key", { var: value });   // 单括号 {var} 插值
 
 `editor` 建议新建 `editor.*`（如 `editor.header`、`editor.configSidebar`、`editor.export`、`editor.captions`、`editor.clips`、`editor.transcript`、`editor.player`、`editor.share` 等）。
 
-## 五、剩余待办：`editor/` 目录（按大小排序，建议拆批串行）
+## 五、`editor/` 目录迁移（✅ 已完成）
 
-> **串行原因**：每批都改 `en.ts` / `zh.ts`，并行会有字典写入竞态。每批一个 subagent，一批完成再派下一批。
-> **`ConfigSidebar.tsx` 已被回退**——之前有个半成品迁移（引入 `useI18n` 但未完成）已 `git checkout` 还原，需从头做。
+> 本节原为「剩余待办」，现已完成。下方批次表保留作历史参考；实际执行方式见**第十节**。
+> **关于 `ConfigSidebar.tsx`**：原交接称「已被回退需从头做」——实际核实该文件在基线 `8e983aa05` 已完成组件迁移（`useI18n` + `editor.config.*` 调用），且 `editor.config` 字典子树已存在，无需重做。
 
 | 批次 | 文件（字节） |
 |------|------|
@@ -93,3 +93,34 @@ pnpm exec tsc --noEmit -p tsconfig.json
 - 设置子页：`routes/(window-chrome)/settings/` 下 recordings、automations、screenshots、license、hotkeys、cli、feedback、transcription、changelog、experimental、Setting、integrations 全部
 - 核心录制流程：`routes/` 下 in-progress-recording、target-select-overlay、camera、recordings-overlay、capture-area、mode-select、debug、`(window-chrome)/upgrade.tsx`、`components/selection-hint.tsx`
 - 截图编辑器：`routes/screenshot-editor/` 全部（含 popovers 子目录、`useScreenshotExport.ts`、共享组件 `components/Cropper.tsx` 扩展）
+
+## 十、`editor/` 迁移完成记录（2026-06-26）
+
+### 实际做法
+- **组件层**：32 个 `.tsx` 文件全部接入 i18n（`useI18n` + `t()` 替换硬编码英文）。多数文件在基线 `8e983aa05` 已完成组件迁移；本轮补齐剩余文件（`ShadowSettings`、`AspectRatioSelect`、`BrandColorsDropdown` 手动迁移）并处理变量遮蔽。
+- **字典层**：`en.ts` / `zh.ts` 各 **+547 行**，在 `editor` 命名空间 `config` 子树之后新增 20 个同级子树，共 **285 个新键**（editor 命名空间叶节点总计约 437）。
+- **执行方式**：蜂群模式（Workflow 多 agent 编排）。组件注入按文件并发（不同 `.tsx` 无竞态），字典合并由单点收口（避免 `en.ts`/`zh.ts` 写入竞态）。
+
+### 新增 editor 子命名空间
+`editor`(根级)、`ui`、`aspectRatio`、`brandColors`、`shadow`、`import`、`captionsRegen`、`error`、`header`、`presets`、`performance`、`captions`、`gradient`、`clips`、`export`、`keyboardTab`、`org`、`player`、`transcript`、`timeline`（含 `index`/`clip`/`scene`/`mask`/`keyboard`/`captions`/`text`/`zoom`/`trackManager`）、`share`。
+
+### 已处理的协调特例
+- **`editor.timeline.scene.mode`**（单数）：代码用单数 `mode.*`，字典建单数子树（`cameraOnly`/`hideCamera`/`splitScreen`/`default`），未动既有复数 `editor.config.scene.modes`。
+- **`editor.ui.cancel` / `editor.ui.comingSoon`**：在 `editor.ui` 下独立建键，不复用 `screenshotEditor.ui`。
+- **`editor.keyboardTab.textWeightCustom`**：插值统一单括号 `Custom ({weight})` / `自定义 ({weight})`（agent 草稿误为 `{{weight}}` 双括号，已修正——`resolveTemplate` 只认单括号）。
+- **`editor.config.*`** 已存在且完整，未重复添加。
+- **全部插值统一单括号**：`{count}`/`{name}`/`{n}`/`{seconds}`/`{weight}` 等。
+
+### 英文原文来源
+约 65% 取自迁移 agent 的结构化翻译输出（ImportProgress / CaptionsRegenerateBadge / EditorErrorScreen / PresetsDropdown / PerformanceOverlay / Header / ClipsSidebar / TranscriptPage / Player / KeyboardTab / OrganizationDropdown / GradientEditor / CaptionsTrack / KeyboardTrack / MaskTrack / TextTrack / ZoomTrack / SceneTrack / CaptionsTab / TrackManager / ClipTrack 等）；约 35% 用 `git show 8e983aa05^:<file>` 查迁移前英文原文再翻译（主要 ExportPage 约 60 键、ShareButton 15 键、AspectRatioSelect/BrandColorsDropdown/ShadowSettings 7 键）。
+
+### 修复的迁移引入错误
+- `Timeline/ClipTrack.tsx:767`：`t("editor.timeline.clip.labelWithIndex", { index: seg.recordingSegment })` 中 `seg.recordingSegment` 为 `number | undefined`，与 `resolveTemplate` 的 `string | number` 不兼容（迁移前模板字符串容忍 undefined）。改为 `index: seg.recordingSegment ?? 0`。
+
+### 验证结果
+- **tsc**：仅剩 2 个既有忽略错误（`context.ts:229`、`captions.ts:242`，均为 `CaptionSettings` 不匹配），无新错误；`zh.ts satisfies RawDictionary` 通过（en/zh 结构镜像）。
+- **键完整性差集**：实际使用的 652 个静态 `editor.*` 键全部命中字典（0 缺失）；字典 editor 叶节点 654 个。
+- **动态键**：`editor.timeline.index.track.${type}` 的 7 个取值（clip/caption/keyboard/text/mask/zoom/scene）在字典中全覆盖。
+
+### 未提交
+全部改动留在工作区，未 `git commit`。`git status` 可见 32 个 `.tsx` + `en.ts` + `zh.ts` + 本文档。待用户确认后提交。

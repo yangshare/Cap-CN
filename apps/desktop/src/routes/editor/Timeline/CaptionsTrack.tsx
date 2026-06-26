@@ -5,6 +5,7 @@ import { createMemo, createRoot, For } from "solid-js";
 import { useEditorContext } from "../context";
 import { useTimelineContext } from "./context";
 import { SegmentContent, SegmentHandle, SegmentRoot, TrackRoot } from "./Track";
+import { useI18n } from "~/i18n/I18nProvider";
 
 export type CaptionSegmentDragState =
 	| { type: "idle" }
@@ -30,6 +31,7 @@ export function CaptionsTrack(props: {
 		projectActions,
 	} = useEditorContext();
 	const { secsPerPixel } = useTimelineContext();
+	const { t } = useI18n();
 
 	const minDuration = () =>
 		Math.max(MIN_SEGMENT_SECS, secsPerPixel() * MIN_SEGMENT_PIXELS);
@@ -139,7 +141,7 @@ export function CaptionsTrack(props: {
 				each={captionSegments()}
 				fallback={
 					<div class="text-center text-sm text-(--text-tertiary) flex flex-col gap-2 justify-center items-center inset-0 w-full bg-gray-3/20 dark:bg-gray-3/10 rounded-xl">
-						<div>No captions</div>
+						<div>{t("editor.timeline.captions.noCaptions")}</div>
 						<button
 							class="h-8 px-3 rounded-lg border border-green-7/50 bg-green-6/15 text-green-11 text-xs font-medium transition-colors hover:bg-green-6/25 disabled:opacity-50 disabled:cursor-not-allowed"
 							disabled={props.isGenerating}
@@ -149,7 +151,9 @@ export function CaptionsTrack(props: {
 								void props.onGenerate();
 							}}
 						>
-							{props.isGenerating ? "Generating..." : "Generate captions"}
+							{props.isGenerating
+								? t("editor.timeline.captions.generating")
+								: t("editor.timeline.captions.generateCaptions")}
 						</button>
 					</div>
 				}
@@ -251,7 +255,7 @@ export function CaptionsTrack(props: {
 								<div class="flex flex-col gap-0.5 justify-center items-center text-xs text-gray-1 dark:text-gray-12 w-full min-w-0 overflow-hidden">
 									<div class="flex gap-1 items-center text-[10px] w-full min-w-0 justify-center">
 										<span class="truncate max-w-full opacity-80">
-											{segment.text || "Caption"}
+											{segment.text || t("editor.timeline.captions.caption")}
 										</span>
 									</div>
 								</div>

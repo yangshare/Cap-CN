@@ -16,6 +16,7 @@ import {
 } from "solid-js";
 import { produce } from "solid-js/store";
 import { commands } from "~/utils/tauri";
+import { useI18n } from "~/i18n/I18nProvider";
 import { useEditorContext } from "../context";
 import {
 	useSegmentContext,
@@ -56,6 +57,7 @@ export function ZoomTrack(props: {
 
 	const { duration, secsPerPixel } = useTimelineContext();
 	const setPreviewTime = useSetPreviewTime();
+	const { t } = useI18n();
 
 	const [creatingSegmentViaDrag, setCreatingSegmentViaDrag] =
 		createSignal(false);
@@ -180,7 +182,7 @@ export function ZoomTrack(props: {
 					items: [
 						{
 							id: "generateZoomSegments",
-							text: "Generate zoom segments from clicks",
+							text: t("editor.timeline.zoom.generateFromClicks"),
 							action: handleGenerateZoomSegments,
 						},
 					],
@@ -321,14 +323,14 @@ export function ZoomTrack(props: {
 									}}
 								>
 									{isGeneratingAutoZoom()
-										? "Generating..."
-										: "Click to generate zoom segments"}
+										? t("editor.timeline.zoom.generating")
+										: t("editor.timeline.zoom.clickToGenerate")}
 								</Button>
 								<button
 									type="button"
 									class="flex shrink-0 justify-center items-center rounded-full outline-hidden text-gray-11 hover:text-gray-12 hover:bg-gray-5 focus-visible:ring-2 focus-visible:ring-gray-8 size-8 transition-colors"
 									disabled={isGeneratingAutoZoom()}
-									aria-label="Dismiss for this session"
+									aria-label={t("editor.timeline.zoom.dismissForSession")}
 									onClick={() => setSessionDismissedGenerateZoomPrompt(true)}
 								>
 									<IconLucideX class="size-4" />
@@ -654,7 +656,7 @@ export function ZoomTrack(props: {
 												</Match>
 												<Match when={true}>
 													<div class="flex flex-col gap-1 justify-center items-center text-xs whitespace-nowrap text-gray-1 dark:text-gray-12 animate-in fade-in">
-														<span class="opacity-70">Zoom</span>
+														<span class="opacity-70">{t("editor.timeline.zoom.label")}</span>
 														<div class="flex gap-1 items-center text-md">
 															<IconLucideSearch class="size-3.5" />
 															{zoomPercentage()}

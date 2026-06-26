@@ -9,45 +9,109 @@ import { getColorPreviewBorderColor } from "./color-utils";
 import { TextInput } from "./TextInput";
 
 export const FONT_OPTIONS = [
-	{ value: "System Sans-Serif", label: "System Sans-Serif" },
-	{ value: "System Serif", label: "System Serif" },
-	{ value: "System Monospace", label: "System Monospace" },
+	{
+		value: "System Sans-Serif",
+		label: "System Sans-Serif",
+		labelKey: "editor.captions.fontSystemSansSerif",
+	},
+	{
+		value: "System Serif",
+		label: "System Serif",
+		labelKey: "editor.captions.fontSystemSerif",
+	},
+	{
+		value: "System Monospace",
+		label: "System Monospace",
+		labelKey: "editor.captions.fontSystemMonospace",
+	},
 ];
 
 export const CAPTION_POSITION_OPTIONS = [
-	{ value: "manual", label: "Manual" },
-	{ value: "top-left", label: "Top Left" },
-	{ value: "top-center", label: "Top Center" },
-	{ value: "top-right", label: "Top Right" },
-	{ value: "bottom-left", label: "Bottom Left" },
-	{ value: "bottom-center", label: "Bottom Center" },
-	{ value: "bottom-right", label: "Bottom Right" },
+	{ value: "manual", label: "Manual", labelKey: "editor.captions.positionManual" },
+	{
+		value: "top-left",
+		label: "Top Left",
+		labelKey: "editor.captions.positionTopLeft",
+	},
+	{
+		value: "top-center",
+		label: "Top Center",
+		labelKey: "editor.captions.positionTopCenter",
+	},
+	{
+		value: "top-right",
+		label: "Top Right",
+		labelKey: "editor.captions.positionTopRight",
+	},
+	{
+		value: "bottom-left",
+		label: "Bottom Left",
+		labelKey: "editor.captions.positionBottomLeft",
+	},
+	{
+		value: "bottom-center",
+		label: "Bottom Center",
+		labelKey: "editor.captions.positionBottomCenter",
+	},
+	{
+		value: "bottom-right",
+		label: "Bottom Right",
+		labelKey: "editor.captions.positionBottomRight",
+	},
 ];
 
 export const KEYBOARD_POSITION_OPTIONS = [
-	{ value: "top-left", label: "Top Left" },
-	{ value: "top-center", label: "Top Center" },
-	{ value: "top-right", label: "Top Right" },
-	{ value: "bottom-left", label: "Bottom Left" },
-	{ value: "bottom-center", label: "Bottom Center" },
-	{ value: "bottom-right", label: "Bottom Right" },
+	{
+		value: "top-left",
+		label: "Top Left",
+		labelKey: "editor.captions.positionTopLeft",
+	},
+	{
+		value: "top-center",
+		label: "Top Center",
+		labelKey: "editor.captions.positionTopCenter",
+	},
+	{
+		value: "top-right",
+		label: "Top Right",
+		labelKey: "editor.captions.positionTopRight",
+	},
+	{
+		value: "bottom-left",
+		label: "Bottom Left",
+		labelKey: "editor.captions.positionBottomLeft",
+	},
+	{
+		value: "bottom-center",
+		label: "Bottom Center",
+		labelKey: "editor.captions.positionBottomCenter",
+	},
+	{
+		value: "bottom-right",
+		label: "Bottom Right",
+		labelKey: "editor.captions.positionBottomRight",
+	},
 ];
 
 export const TEXT_WEIGHT_OPTIONS = [
-	{ label: "Normal", value: 400 },
-	{ label: "Medium", value: 500 },
-	{ label: "Bold", value: 700 },
+	{ label: "Normal", labelKey: "editor.captions.weightNormal", value: 400 },
+	{ label: "Medium", labelKey: "editor.captions.weightMedium", value: 500 },
+	{ label: "Bold", labelKey: "editor.captions.weightBold", value: 700 },
 ];
 
 export const CAPTION_ANIMATION_OPTIONS = [
-	{ value: "none", label: "None" },
-	{ value: "bounce", label: "Bounce" },
-	{ value: "pop", label: "Pop" },
+	{ value: "none", label: "None", labelKey: "editor.captions.animationNone" },
+	{ value: "bounce", label: "Bounce", labelKey: "editor.captions.animationBounce" },
+	{ value: "pop", label: "Pop", labelKey: "editor.captions.animationPop" },
 ];
 
 export const CAPTION_HIGHLIGHT_STYLE_OPTIONS = [
-	{ value: "color", label: "Color" },
-	{ value: "pill", label: "Pill" },
+	{
+		value: "color",
+		label: "Color",
+		labelKey: "editor.captions.highlightStyleColor",
+	},
+	{ value: "pill", label: "Pill", labelKey: "editor.captions.highlightStylePill" },
 ];
 
 export function getTextWeightLabel(weight: number | null | undefined) {
@@ -55,6 +119,12 @@ export function getTextWeightLabel(weight: number | null | undefined) {
 	if (option) return option.label;
 	if (weight != null) return `Custom (${weight})`;
 	return "Normal";
+}
+
+export function getTextWeightLabelKey(weight: number | null | undefined) {
+	const option = TEXT_WEIGHT_OPTIONS.find((option) => option.value === weight);
+	if (option) return option.labelKey;
+	return "editor.captions.weightNormal";
 }
 
 export function HexColorInput(props: {

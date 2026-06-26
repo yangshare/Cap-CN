@@ -16,6 +16,7 @@ import { produce } from "solid-js/store";
 import toast from "solid-toast";
 import { Toggle } from "~/components/Toggle";
 import Tooltip from "~/components/Tooltip";
+import { useI18n } from "~/i18n/I18nProvider";
 import {
 	CAPTION_STYLE_PRESETS,
 	type CaptionAnimation,
@@ -51,7 +52,6 @@ import {
 	CAPTION_HIGHLIGHT_STYLE_OPTIONS,
 	CAPTION_POSITION_OPTIONS,
 	FONT_OPTIONS,
-	getTextWeightLabel,
 	HexColorInput,
 	TEXT_WEIGHT_OPTIONS,
 } from "./text-style";
@@ -69,79 +69,76 @@ import {
 
 interface ModelOption {
 	name: string;
-	label: string;
+	labelKey: string;
 	modelName: string;
 	size: string;
-	description: string;
+	descKey: string;
 }
 
 interface LanguageOption {
 	code: string;
 	label: string;
+	labelKey: string;
 }
 
 const MODEL_OPTIONS: ModelOption[] = [
 	{
 		name: "best",
-		label: "Recommended",
+		labelKey: "editor.captions.modelRecommendedLabel",
 		modelName: "parakeet-tdt-0.6b-v3 int8",
 		size: "~640MB",
-		description: "Best balance for most recordings",
+		descKey: "editor.captions.modelRecommendedDesc",
 	},
 	{
 		name: "best-max",
-		label: "High Accuracy",
+		labelKey: "editor.captions.modelHighAccuracyLabel",
 		modelName: "parakeet-tdt-0.6b-v3",
 		size: "~2.4GB",
-		description: "Larger download, higher accuracy",
+		descKey: "editor.captions.modelHighAccuracyDesc",
 	},
 	{
 		name: "small",
 		modelName: "whisper.cpp small",
-		label: "Small",
+		labelKey: "editor.captions.modelSmallLabel",
 		size: "466MB",
-		description: "Smallest download",
+		descKey: "editor.captions.modelSmallDesc",
 	},
 	{
 		name: "medium",
 		modelName: "whisper.cpp medium",
-		label: "Medium",
+		labelKey: "editor.captions.modelMediumLabel",
 		size: "1.5GB",
-		description: "Slower, more accurate",
+		descKey: "editor.captions.modelMediumDesc",
 	},
 ];
 
 const LANGUAGE_OPTIONS: LanguageOption[] = [
-	{ code: "auto", label: "Auto Detect" },
-	{ code: "en", label: "English" },
-	{ code: "es", label: "Spanish" },
-	{ code: "fr", label: "French" },
-	{ code: "de", label: "German" },
-	{ code: "it", label: "Italian" },
-	{ code: "pt", label: "Portuguese" },
-	{ code: "nl", label: "Dutch" },
-	{ code: "pl", label: "Polish" },
-	{ code: "ru", label: "Russian" },
-	{ code: "sk", label: "Slovak" },
-	{ code: "tr", label: "Turkish" },
-	{ code: "ja", label: "Japanese" },
-	{ code: "ko", label: "Korean" },
-	{ code: "zh", label: "Chinese" },
-	{ code: "ar", label: "Arabic" },
-	{ code: "hi", label: "Hindi" },
-	{ code: "bn", label: "Bengali" },
-	{ code: "ta", label: "Tamil" },
-	{ code: "te", label: "Telugu" },
-	{ code: "mr", label: "Marathi" },
-	{ code: "gu", label: "Gujarati" },
-	{ code: "pa", label: "Punjabi" },
-	{ code: "ur", label: "Urdu" },
-	{ code: "fa", label: "Persian" },
-	{ code: "he", label: "Hebrew" },
-	{ code: "ar", label: "Arabic" },
-	{ code: "hi", label: "Hindi" },
-	{ code: "bn", label: "Bengali" },
-	{ code: "ta", label: "Tamil" },
+	{ code: "auto", label: "Auto Detect", labelKey: "editor.captions.languageAuto" },
+	{ code: "en", label: "English", labelKey: "editor.captions.languageEn" },
+	{ code: "es", label: "Spanish", labelKey: "editor.captions.languageEs" },
+	{ code: "fr", label: "French", labelKey: "editor.captions.languageFr" },
+	{ code: "de", label: "German", labelKey: "editor.captions.languageDe" },
+	{ code: "it", label: "Italian", labelKey: "editor.captions.languageIt" },
+	{ code: "pt", label: "Portuguese", labelKey: "editor.captions.languagePt" },
+	{ code: "nl", label: "Dutch", labelKey: "editor.captions.languageNl" },
+	{ code: "pl", label: "Polish", labelKey: "editor.captions.languagePl" },
+	{ code: "ru", label: "Russian", labelKey: "editor.captions.languageRu" },
+	{ code: "sk", label: "Slovak", labelKey: "editor.captions.languageSk" },
+	{ code: "tr", label: "Turkish", labelKey: "editor.captions.languageTr" },
+	{ code: "ja", label: "Japanese", labelKey: "editor.captions.languageJa" },
+	{ code: "ko", label: "Korean", labelKey: "editor.captions.languageKo" },
+	{ code: "zh", label: "Chinese", labelKey: "editor.captions.languageZh" },
+	{ code: "ar", label: "Arabic", labelKey: "editor.captions.languageAr" },
+	{ code: "hi", label: "Hindi", labelKey: "editor.captions.languageHi" },
+	{ code: "bn", label: "Bengali", labelKey: "editor.captions.languageBn" },
+	{ code: "ta", label: "Tamil", labelKey: "editor.captions.languageTa" },
+	{ code: "te", label: "Telugu", labelKey: "editor.captions.languageTe" },
+	{ code: "mr", label: "Marathi", labelKey: "editor.captions.languageMr" },
+	{ code: "gu", label: "Gujarati", labelKey: "editor.captions.languageGu" },
+	{ code: "pa", label: "Punjabi", labelKey: "editor.captions.languagePa" },
+	{ code: "ur", label: "Urdu", labelKey: "editor.captions.languageUr" },
+	{ code: "fa", label: "Persian", labelKey: "editor.captions.languageFa" },
+	{ code: "he", label: "Hebrew", labelKey: "editor.captions.languageHe" },
 ];
 
 const STYLE_PRESET_KEYS = new Set<keyof EditorCaptionSettings>([
@@ -172,8 +169,13 @@ function hexToRgba(hex: string, opacityPercent: number) {
 }
 
 function CaptionPresetPreview(props: { preset: CaptionStylePreset }) {
+	const { t } = useI18n();
 	const style = () => props.preset.style;
-	const words = ["Make", "it", "pop"];
+	const words = [
+		t("editor.captions.presetPreviewWord1"),
+		t("editor.captions.presetPreviewWord2"),
+		t("editor.captions.presetPreviewWord3"),
+	];
 	const emphasizeIndex = 2;
 
 	const textShadow = () => {
@@ -234,8 +236,25 @@ function CaptionPresetPreview(props: { preset: CaptionStylePreset }) {
 export function CaptionsTab(props: {
 	brandColorSwatches: OrganizationBrandColorSwatch[];
 }) {
+	const { t } = useI18n();
 	const { project, setProject, editorInstance, editorState, setEditorState } =
 		useEditorContext();
+
+	const PRESET_LABEL_KEYS: Record<string, string> = {
+		classic: "editor.captions.presetClassic",
+		karaoke: "editor.captions.presetKaraoke",
+		highlight: "editor.captions.presetHighlight",
+		pop: "editor.captions.presetPop",
+		minimal: "editor.captions.presetMinimal",
+		custom: "editor.captions.presetCustom",
+	};
+	const PRESET_DESC_KEYS: Record<string, string> = {
+		classic: "editor.captions.presetClassicDesc",
+		karaoke: "editor.captions.presetKaraokeDesc",
+		highlight: "editor.captions.presetHighlightDesc",
+		pop: "editor.captions.presetPopDesc",
+		minimal: "editor.captions.presetMinimalDesc",
+	};
 
 	const selectedCaptionIndex = () =>
 		editorState.timeline.selection?.type === "caption" &&
@@ -566,10 +585,10 @@ export function CaptionsTab(props: {
 			unlisten();
 
 			setDownloadedModels((prev) => [...prev, modelToDownload]);
-			toast.success("Transcription model downloaded successfully!");
+			toast.success(t("editor.captions.toastModelDownloaded"));
 		} catch (error) {
 			console.error("Error downloading model:", error);
-			toast.error("Failed to download transcription model");
+			toast.error(t("editor.captions.toastModelDownloadFailed"));
 		} finally {
 			setIsDownloading(false);
 			setDownloadingModel(null);
@@ -578,7 +597,7 @@ export function CaptionsTab(props: {
 
 	const generateCaptions = async () => {
 		if (!editorInstance) {
-			toast.error("Editor instance not found");
+			toast.error(t("editor.captions.toastEditorNotFound"));
 			return;
 		}
 
@@ -605,16 +624,14 @@ export function CaptionsTab(props: {
 				setEditorState("timeline", "tracks", "caption", true);
 				setEditorState("captions", "isStale", false);
 
-				toast.success("Captions generated successfully!");
+				toast.success(t("editor.captions.toastCaptionsGenerated"));
 			} else {
-				toast.error(
-					"No captions were generated. The audio might be too quiet or unclear.",
-				);
+				toast.error(t("editor.captions.toastNoCaptions"));
 			}
 		} catch (error) {
 			console.error("Error generating captions:", error);
 			const errorMessage = getCaptionGenerationErrorMessage(error);
-			toast.error(`Failed to generate captions: ${errorMessage}`);
+			toast.error(t("editor.captions.toastGenerateFailed", { errorMessage }));
 		} finally {
 			setIsGenerating(false);
 		}
@@ -627,11 +644,11 @@ export function CaptionsTab(props: {
 	);
 
 	return (
-		<Field name="Captions" icon={<IconCapMessageBubble />} badge="Beta">
+		<Field name={t("editor.captions.fieldCaptions")} icon={<IconCapMessageBubble />} badge={t("editor.captions.badgeBeta")}>
 			<div class="flex flex-col gap-4">
 				<div class="space-y-6 transition-all duration-200">
 					<div class="space-y-4">
-						<Subfield name="Model" class="items-start">
+						<Subfield name={t("editor.captions.subfieldModel")} class="items-start">
 							<KSelect<string>
 								options={availableModelOptions().map((model) => model.name)}
 								value={selectedModel()}
@@ -652,7 +669,9 @@ export function CaptionsTab(props: {
 												<div class="min-w-0 flex-1">
 													<div class="flex items-center gap-1.5 text-gray-12">
 														<KSelect.ItemLabel class="truncate font-medium">
-															{model?.label ?? props.item.rawValue}
+															{model
+																? t(model.labelKey)
+																: props.item.rawValue}
 														</KSelect.ItemLabel>
 														<Show when={model}>
 															<Tooltip openDelay={0} content={model?.modelName}>
@@ -671,7 +690,7 @@ export function CaptionsTab(props: {
 													</div>
 													<Show when={model}>
 														<div class="truncate text-xs text-gray-11">
-															{model?.description}
+															{model ? t(model.descKey) : ""}
 														</div>
 													</Show>
 												</div>
@@ -689,7 +708,9 @@ export function CaptionsTab(props: {
 									<div class="min-w-0 flex-1 text-left">
 										<div class="flex items-center gap-1.5">
 											<span class="truncate font-medium">
-												{selectedModelOption()?.label || "Select a model"}
+												{selectedModelOption()
+													? t(selectedModelOption()!.labelKey)
+													: t("editor.captions.selectModel")}
 											</span>
 											<Show when={selectedModelOption()}>
 												<Tooltip
@@ -709,7 +730,9 @@ export function CaptionsTab(props: {
 										</div>
 										<Show when={selectedModelOption()}>
 											<div class="truncate text-xs text-gray-11">
-												{selectedModelOption()?.description}
+												{selectedModelOption()
+													? t(selectedModelOption()!.descKey)
+													: ""}
 											</div>
 										</Show>
 									</div>
@@ -737,12 +760,11 @@ export function CaptionsTab(props: {
 
 						<Show when={!supportsParakeetTranscription()}>
 							<p class="text-xs text-gray-10">
-								Parakeet caption models are unavailable on Intel Macs. Whisper
-								models remain available.
+								{t("editor.captions.parakeetUnavailable")}
 							</p>
 						</Show>
 
-						<Subfield name="Language">
+						<Subfield name={t("editor.captions.subfieldLanguage")}>
 							<KSelect<string>
 								options={LANGUAGE_OPTIONS.map((l) => l.code)}
 								value={selectedLanguage()}
@@ -755,11 +777,12 @@ export function CaptionsTab(props: {
 										item={props.item}
 									>
 										<KSelect.ItemLabel class="flex-1">
-											{
-												LANGUAGE_OPTIONS.find(
+											{(() => {
+												const lang = LANGUAGE_OPTIONS.find(
 													(l) => l.code === props.item.rawValue,
-												)?.label
-											}
+												);
+												return lang ? t(lang.labelKey) : props.item.rawValue;
+											})()}
 										</KSelect.ItemLabel>
 									</MenuItem>
 								)}
@@ -771,7 +794,11 @@ export function CaptionsTab(props: {
 												(l) => l.code === state.selectedOption(),
 											);
 											return (
-												<span>{language?.label || "Select a language"}</span>
+												<span>
+												{language
+													? t(language.labelKey)
+													: t("editor.captions.selectLanguage")}
+											</span>
 											);
 										}}
 									</KSelect.Value>
@@ -808,17 +835,23 @@ export function CaptionsTab(props: {
 												fallback={
 													<>
 														<IconLucideDownload class="size-4" />
-														Download{" "}
-														{
-															availableModelOptions().find(
+														{t("editor.captions.downloadModel", {
+															model: availableModelOptions().find(
 																(m) => m.name === selectedModel(),
-															)?.label
-														}{" "}
-														Model
+															)
+																? t(
+																		availableModelOptions().find(
+																			(m) => m.name === selectedModel(),
+																		)!.labelKey,
+																	)
+																: "",
+														})}
 													</>
 												}
 											>
-												Downloading... {Math.round(downloadProgress())}%
+												{t("editor.captions.downloadingProgress", {
+													progress: Math.round(downloadProgress()),
+												})}
 											</Show>
 										</Button>
 										<Show when={isDownloading()}>
@@ -839,10 +872,10 @@ export function CaptionsTab(props: {
 										class="w-full"
 									>
 										{isGenerating()
-											? "Generating..."
+											? t("editor.captions.generating")
 											: hasCaptions()
-												? "Regenerate Captions"
-												: "Generate Captions"}
+												? t("editor.captions.regenerateCaptions")
+												: t("editor.captions.generateCaptions")}
 									</Button>
 								</Show>
 							</Show>
@@ -855,13 +888,17 @@ export function CaptionsTab(props: {
 							!hasCaptions() && "opacity-50 pointer-events-none",
 						)}
 					>
-						<Field name="Style" icon={<IconCapMessageBubble />}>
+						<Field name={t("editor.captions.fieldStyle")} icon={<IconCapMessageBubble />}>
 							<div class="grid grid-cols-2 gap-2">
 								<For each={CAPTION_STYLE_PRESETS}>
 									{(preset) => (
 										<button
 											type="button"
-											title={preset.description}
+											title={
+												PRESET_DESC_KEYS[preset.id]
+													? t(PRESET_DESC_KEYS[preset.id])
+													: preset.description
+											}
 											onClick={() => applyCaptionPreset(preset)}
 											disabled={!hasCaptions()}
 											class={cx(
@@ -873,7 +910,9 @@ export function CaptionsTab(props: {
 										>
 											<CaptionPresetPreview preset={preset} />
 											<span class="px-0.5 text-xs font-medium text-gray-12">
-												{preset.label}
+												{PRESET_LABEL_KEYS[preset.id]
+													? t(PRESET_LABEL_KEYS[preset.id])
+													: preset.label}
 											</span>
 										</button>
 									)}
@@ -881,20 +920,22 @@ export function CaptionsTab(props: {
 								<Show when={selectedPresetId() === "custom"}>
 									<div class="flex flex-col gap-1.5 rounded-lg border border-blue-9 p-1.5 text-left ring-1 ring-blue-9">
 										<div class="flex h-12 items-center justify-center rounded-md bg-gray-2 text-xs text-gray-10">
-											Custom
+											{t("editor.captions.presetCustom")}
 										</div>
 										<span class="px-0.5 text-xs font-medium text-gray-12">
-											Custom
+											{t("editor.captions.presetCustom")}
 										</span>
 									</div>
 								</Show>
 							</div>
 						</Field>
 
-						<Field name="Font Settings" icon={<IconCapMessageBubble />}>
+						<Field name={t("editor.captions.fieldFontSettings")} icon={<IconCapMessageBubble />}>
 							<div class="space-y-3">
 								<div class="flex flex-col gap-2">
-									<span class="text-gray-11 text-sm">Font Family</span>
+									<span class="text-gray-11 text-sm">
+										{t("editor.captions.fontFamily")}
+									</span>
 									<KSelect<string>
 										options={FONT_OPTIONS.map((f) => f.value)}
 										value={getSetting("font")}
@@ -909,22 +950,24 @@ export function CaptionsTab(props: {
 												item={props.item}
 											>
 												<KSelect.ItemLabel class="flex-1">
-													{
-														FONT_OPTIONS.find(
+													{(() => {
+														const font = FONT_OPTIONS.find(
 															(f) => f.value === props.item.rawValue,
-														)?.label
-													}
+														);
+														return font ? t(font.labelKey) : props.item.rawValue;
+													})()}
 												</KSelect.ItemLabel>
 											</MenuItem>
 										)}
 									>
 										<KSelect.Trigger class="w-full flex items-center justify-between rounded-lg px-3 py-2 bg-gray-2 border border-gray-3 text-gray-12 hover:border-gray-4 hover:bg-gray-3 focus:border-blue-9 focus:ring-1 focus:ring-blue-9 transition-colors">
 											<KSelect.Value<string>>
-												{(state) =>
-													FONT_OPTIONS.find(
+												{(state) => {
+													const font = FONT_OPTIONS.find(
 														(f) => f.value === state.selectedOption(),
-													)?.label
-												}
+													);
+													return font ? t(font.labelKey) : state.selectedOption();
+												}}
 											</KSelect.Value>
 											<KSelect.Icon>
 												<IconCapChevronDown />
@@ -945,7 +988,9 @@ export function CaptionsTab(props: {
 								</div>
 
 								<div class="flex flex-col gap-2">
-									<span class="text-gray-11 text-sm">Size</span>
+									<span class="text-gray-11 text-sm">
+										{t("editor.captions.size")}
+									</span>
 									<Slider
 										value={[getSetting("size")]}
 										onChange={(v) => updateCaptionSetting("size", v[0])}
@@ -957,7 +1002,9 @@ export function CaptionsTab(props: {
 								</div>
 
 								<div class="flex items-center justify-between">
-									<span class="text-gray-11 text-sm">Uppercase</span>
+									<span class="text-gray-11 text-sm">
+										{t("editor.captions.uppercase")}
+									</span>
 									<Toggle
 										checked={getSetting("uppercase")}
 										onChange={(checked) =>
@@ -970,7 +1017,7 @@ export function CaptionsTab(props: {
 								<div class="flex flex-col gap-2">
 									<div class="flex items-center justify-between">
 										<span class="text-gray-11 text-sm">
-											Active Word Highlight
+											{t("editor.captions.activeWordHighlight")}
 										</span>
 										<Toggle
 											checked={getSetting("activeWordHighlight")}
@@ -981,16 +1028,15 @@ export function CaptionsTab(props: {
 										/>
 									</div>
 									<p class="text-xs text-gray-10">
-										This is the first version of captions in Cap. Active word
-										highlighting may be inaccurate in some situations. We're
-										working on a fix for this and it will be released in
-										upcoming versions.
+										{t("editor.captions.activeWordHighlightNote")}
 									</p>
 								</div>
 
 								<Show when={getSetting("activeWordHighlight")}>
 									<div class="flex flex-col gap-2">
-										<span class="text-gray-11 text-sm">Highlight Style</span>
+										<span class="text-gray-11 text-sm">
+											{t("editor.captions.highlightStyle")}
+										</span>
 										<KSelect<string>
 											options={CAPTION_HIGHLIGHT_STYLE_OPTIONS.map(
 												(o) => o.value,
@@ -1010,22 +1056,28 @@ export function CaptionsTab(props: {
 													item={itemProps.item}
 												>
 													<KSelect.ItemLabel class="flex-1">
-														{
-															CAPTION_HIGHLIGHT_STYLE_OPTIONS.find(
+														{(() => {
+															const opt = CAPTION_HIGHLIGHT_STYLE_OPTIONS.find(
 																(o) => o.value === itemProps.item.rawValue,
-															)?.label
-														}
+															);
+															return opt
+																? t(opt.labelKey)
+																: itemProps.item.rawValue;
+														})()}
 													</KSelect.ItemLabel>
 												</MenuItem>
 											)}
 										>
 											<KSelect.Trigger class="w-full flex items-center justify-between rounded-lg px-3 py-2 bg-gray-2 border border-gray-3 text-gray-12 hover:border-gray-4 hover:bg-gray-3 focus:border-blue-9 focus:ring-1 focus:ring-blue-9 transition-colors">
 												<KSelect.Value<string>>
-													{(state) =>
-														CAPTION_HIGHLIGHT_STYLE_OPTIONS.find(
+													{(state) => {
+														const opt = CAPTION_HIGHLIGHT_STYLE_OPTIONS.find(
 															(o) => o.value === state.selectedOption(),
-														)?.label
-													}
+														);
+														return opt
+															? t(opt.labelKey)
+															: state.selectedOption();
+													}}
 												</KSelect.Value>
 												<KSelect.Icon>
 													<IconCapChevronDown />
@@ -1046,7 +1098,9 @@ export function CaptionsTab(props: {
 								</Show>
 
 								<div class="flex flex-col gap-2">
-									<span class="text-gray-11 text-sm">Text Color</span>
+									<span class="text-gray-11 text-sm">
+										{t("editor.captions.textColor")}
+									</span>
 									<HexColorInput
 										value={getSetting("color")}
 										brandColorSwatches={props.brandColorSwatches}
@@ -1056,10 +1110,12 @@ export function CaptionsTab(props: {
 							</div>
 						</Field>
 
-						<Field name="Background Settings" icon={<IconCapMessageBubble />}>
+						<Field name={t("editor.captions.fieldBackgroundSettings")} icon={<IconCapMessageBubble />}>
 							<div class="space-y-3">
 								<div class="flex flex-col gap-2">
-									<span class="text-gray-11 text-sm">Background Color</span>
+									<span class="text-gray-11 text-sm">
+										{t("editor.captions.backgroundColor")}
+									</span>
 									<HexColorInput
 										value={getSetting("backgroundColor")}
 										brandColorSwatches={props.brandColorSwatches}
@@ -1070,7 +1126,9 @@ export function CaptionsTab(props: {
 								</div>
 
 								<div class="flex flex-col gap-2">
-									<span class="text-gray-11 text-sm">Background Opacity</span>
+									<span class="text-gray-11 text-sm">
+										{t("editor.captions.backgroundOpacity")}
+									</span>
 									<Slider
 										value={[getSetting("backgroundOpacity")]}
 										onChange={(v) =>
@@ -1085,7 +1143,7 @@ export function CaptionsTab(props: {
 							</div>
 						</Field>
 
-						<Field name="Position" icon={<IconCapMessageBubble />}>
+						<Field name={t("editor.captions.fieldPosition")} icon={<IconCapMessageBubble />}>
 							<KSelect<string>
 								options={CAPTION_POSITION_OPTIONS.map((p) => p.value)}
 								value={getSetting("position")}
@@ -1100,11 +1158,12 @@ export function CaptionsTab(props: {
 										item={props.item}
 									>
 										<KSelect.ItemLabel class="flex-1">
-											{
-												CAPTION_POSITION_OPTIONS.find(
+											{(() => {
+												const opt = CAPTION_POSITION_OPTIONS.find(
 													(p) => p.value === props.item.rawValue,
-												)?.label
-											}
+												);
+												return opt ? t(opt.labelKey) : props.item.rawValue;
+											})()}
 										</KSelect.ItemLabel>
 									</MenuItem>
 								)}
@@ -1113,11 +1172,14 @@ export function CaptionsTab(props: {
 									<KSelect.Value<string>>
 										{(state) => (
 											<span>
-												{
-													CAPTION_POSITION_OPTIONS.find(
+												{(() => {
+													const opt = CAPTION_POSITION_OPTIONS.find(
 														(p) => p.value === state.selectedOption(),
-													)?.label
-												}
+													);
+													return opt
+														? t(opt.labelKey)
+														: state.selectedOption();
+												})()}
 											</span>
 										)}
 									</KSelect.Value>
@@ -1138,10 +1200,12 @@ export function CaptionsTab(props: {
 							</KSelect>
 						</Field>
 
-						<Field name="Animation" icon={<IconCapMessageBubble />}>
+						<Field name={t("editor.captions.fieldAnimation")} icon={<IconCapMessageBubble />}>
 							<div class="space-y-3">
 								<div class="flex flex-col gap-2">
-									<span class="text-gray-11 text-sm">Animation Style</span>
+									<span class="text-gray-11 text-sm">
+										{t("editor.captions.animationStyle")}
+									</span>
 									<KSelect<string>
 										options={CAPTION_ANIMATION_OPTIONS.map((o) => o.value)}
 										value={getSetting("animation")}
@@ -1159,22 +1223,28 @@ export function CaptionsTab(props: {
 												item={itemProps.item}
 											>
 												<KSelect.ItemLabel class="flex-1">
-													{
-														CAPTION_ANIMATION_OPTIONS.find(
+													{(() => {
+														const opt = CAPTION_ANIMATION_OPTIONS.find(
 															(o) => o.value === itemProps.item.rawValue,
-														)?.label
-													}
+														);
+														return opt
+															? t(opt.labelKey)
+															: itemProps.item.rawValue;
+													})()}
 												</KSelect.ItemLabel>
 											</MenuItem>
 										)}
 									>
 										<KSelect.Trigger class="w-full flex items-center justify-between rounded-lg px-3 py-2 bg-gray-2 border border-gray-3 text-gray-12 hover:border-gray-4 hover:bg-gray-3 focus:border-blue-9 focus:ring-1 focus:ring-blue-9 transition-colors">
 											<KSelect.Value<string>>
-												{(state) =>
-													CAPTION_ANIMATION_OPTIONS.find(
+												{(state) => {
+													const opt = CAPTION_ANIMATION_OPTIONS.find(
 														(o) => o.value === state.selectedOption(),
-													)?.label
-												}
+													);
+													return opt
+														? t(opt.labelKey)
+														: state.selectedOption();
+												}}
 											</KSelect.Value>
 											<KSelect.Icon>
 												<IconCapChevronDown />
@@ -1193,7 +1263,9 @@ export function CaptionsTab(props: {
 									</KSelect>
 								</div>
 								<div class="flex flex-col gap-2">
-									<span class="text-gray-11 text-sm">Highlight Color</span>
+									<span class="text-gray-11 text-sm">
+										{t("editor.captions.highlightColor")}
+									</span>
 									<HexColorInput
 										value={getSetting("highlightColor")}
 										brandColorSwatches={props.brandColorSwatches}
@@ -1203,7 +1275,9 @@ export function CaptionsTab(props: {
 									/>
 								</div>
 								<div class="flex flex-col gap-2">
-									<span class="text-gray-11 text-sm">Fade Duration</span>
+									<span class="text-gray-11 text-sm">
+										{t("editor.captions.fadeDuration")}
+									</span>
 									<Slider
 										value={[getSetting("fadeDuration") * 100]}
 										onChange={(v) =>
@@ -1221,13 +1295,14 @@ export function CaptionsTab(props: {
 							</div>
 						</Field>
 
-						<Field name="Font Weight" icon={<IconCapMessageBubble />}>
+						<Field name={t("editor.captions.fieldFontWeight")} icon={<IconCapMessageBubble />}>
 							<KSelect
 								options={TEXT_WEIGHT_OPTIONS}
 								optionValue="value"
 								optionTextValue="label"
 								value={{
 									label: "Custom",
+									labelKey: "editor.captions.weightCustom",
 									value: getSetting("fontWeight"),
 								}}
 								onChange={(value) => {
@@ -1241,7 +1316,7 @@ export function CaptionsTab(props: {
 										item={selectItemProps.item}
 									>
 										<KSelect.ItemLabel class="flex-1">
-											{selectItemProps.item.rawValue.label}
+											{t(selectItemProps.item.rawValue.labelKey)}
 										</KSelect.ItemLabel>
 										<KSelect.ItemIndicator class="ml-auto text-blue-9">
 											<IconCapCircleCheck />
@@ -1251,13 +1326,17 @@ export function CaptionsTab(props: {
 							>
 								<KSelect.Trigger class="flex w-full items-center justify-between rounded-md border border-gray-3 bg-gray-2 px-3 py-2 text-sm text-gray-12 transition-colors hover:border-gray-4 hover:bg-gray-3 focus:border-blue-9 focus:outline-hidden focus:ring-1 focus:ring-blue-9">
 									<KSelect.Value<{
-										label: string;
+										labelKey: string;
 										value: number;
 									}> class="truncate">
-										{(state) =>
-											state.selectedOption()?.label ??
-											getTextWeightLabel(getSetting("fontWeight"))
-										}
+										{(state) => {
+											const selected = state.selectedOption();
+											if (selected) return t(selected.labelKey);
+											const weight = getSetting("fontWeight");
+											return t("editor.captions.weightCustomValue", {
+												weight: String(weight),
+											});
+										}}
 									</KSelect.Value>
 									<KSelect.Icon>
 										<IconCapChevronDown class="size-4 shrink-0 transform transition-transform data-expanded:rotate-180 text-(--gray-500)" />
@@ -1277,8 +1356,8 @@ export function CaptionsTab(props: {
 							</KSelect>
 						</Field>
 
-						<Field name="Export Options" icon={<IconCapMessageBubble />}>
-							<Subfield name="Export with Subtitles">
+						<Field name={t("editor.captions.fieldExportOptions")} icon={<IconCapMessageBubble />}>
+							<Subfield name={t("editor.captions.exportWithSubtitles")}>
 								<Toggle
 									checked={getSetting("exportWithSubtitles")}
 									onChange={(checked) =>
@@ -1299,13 +1378,13 @@ export function CaptionsTab(props: {
 						{(() => {
 							return (
 								<Field
-									name="Selected Caption Override"
+									name={t("editor.captions.fieldSelectedCaptionOverride")}
 									icon={<IconCapMessageBubble />}
 								>
 									<Show when={selectedCaptionSegment()}>
 										{(seg) => (
 											<div class="space-y-3">
-												<Subfield name="Start Time">
+												<Subfield name={t("editor.captions.startTime")}>
 													<Input
 														type="number"
 														value={seg().start.toFixed(2)}
@@ -1320,7 +1399,7 @@ export function CaptionsTab(props: {
 														}
 													/>
 												</Subfield>
-												<Subfield name="End Time">
+												<Subfield name={t("editor.captions.endTime")}>
 													<Input
 														type="number"
 														value={seg().end.toFixed(2)}
@@ -1333,7 +1412,7 @@ export function CaptionsTab(props: {
 														}
 													/>
 												</Subfield>
-												<Subfield name="Caption Text">
+												<Subfield name={t("editor.captions.captionText")}>
 													<Input
 														type="text"
 														value={seg().text}
@@ -1350,7 +1429,7 @@ export function CaptionsTab(props: {
 														}
 													/>
 												</Subfield>
-												<Subfield name="Fade Duration Override">
+												<Subfield name={t("editor.captions.fadeDurationOverride")}>
 													<Slider
 														value={[
 															(seg().fadeDurationOverride ??

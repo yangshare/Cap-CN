@@ -23,6 +23,7 @@ import toast from "solid-toast";
 import "./styles.css";
 
 import Tooltip from "~/components/Tooltip";
+import { useI18n } from "~/i18n/I18nProvider";
 import { defaultCaptionSettings } from "~/store/captions";
 import { defaultKeyboardSettings } from "~/store/keyboard";
 import { commands } from "~/utils/tauri";
@@ -148,6 +149,8 @@ export function Timeline(props: {
 		previewResolutionBase,
 	} = useEditorContext();
 
+	const { t } = useI18n();
+
 	const duration = () => editorInstance.recordingDuration;
 	const transform = () => editorState.timeline.transform;
 
@@ -167,6 +170,7 @@ export function Timeline(props: {
 	const trackOptions = createMemo(() =>
 		trackDefinitions.map((definition) => ({
 			...definition,
+			label: t(`editor.timeline.index.track.${definition.type}`),
 			active:
 				definition.type === "caption"
 					? trackState().caption
@@ -435,7 +439,11 @@ export function Timeline(props: {
 		const menu = await Menu.new({
 			items: [
 				await MenuItem.new({
-					text: `Delete ${type === "text" ? "text" : "mask"} track`,
+					text: t(
+						type === "text"
+							? "editor.timeline.index.deleteTextTrack"
+							: "editor.timeline.index.deleteMaskTrack",
+					),
 					action: () => handleDeleteTrackLane(type, laneIndex),
 				}),
 			],
@@ -696,7 +704,7 @@ export function Timeline(props: {
 
 			if (result.segments.length < 1) {
 				toast.error(
-					"No captions were generated. The audio might be too quiet or unclear.",
+					t("editor.timeline.index.noCaptionsGenerated"),
 				);
 				return;
 			}
@@ -714,11 +722,15 @@ export function Timeline(props: {
 
 			setEditorState("timeline", "tracks", "caption", true);
 			setEditorState("captions", "isStale", false);
-			toast.success("Captions generated successfully!");
+			toast.success(t("editor.timeline.index.captionsGeneratedSuccess"));
 		} catch (error) {
 			console.error("Error generating captions:", error);
 			const errorMessage = getCaptionGenerationErrorMessage(error);
-			toast.error(`Failed to generate captions: ${errorMessage}`);
+			toast.error(
+				t("editor.timeline.index.captionsGenerateFailed", {
+					error: errorMessage,
+				}),
+			);
 		} finally {
 			setEditorState("captions", "isGenerating", false);
 		}
@@ -843,7 +855,7 @@ export function Timeline(props: {
 						<TimelineMarkings />
 					</div>
 					<div class="absolute bottom-0 z-30">
-						<Tooltip content="Add track">
+						<Tooltip content={t("editor.timeline.index.addTrack")}>
 							<TrackManager
 								options={trackOptions()}
 								onToggle={handleToggleTrack}
@@ -910,7 +922,7 @@ export function Timeline(props: {
 						}}
 					>
 						<div class="flex flex-col gap-2 min-h-full">
-							<TrackRow icon={trackIcons.clip} label="Video">
+							<TrackRow icon={trackIcons.clip} label={t("editor.timeline.index.track.clip")}>
 								<ClipTrack
 									ref={setTimelineRef}
 									handleUpdatePlayhead={handleUpdatePlayhead}
@@ -919,7 +931,7 @@ export function Timeline(props: {
 							<Show when={captionTrackVisible()}>
 								<TrackRow
 									icon={trackIcons.caption}
-									label="Captions"
+									label={t("editor.timeline.index.track.caption")}
 									onDelete={() => handleDeleteSingleTrack("caption")}
 								>
 									<CaptionsTrack
@@ -935,7 +947,7 @@ export function Timeline(props: {
 							<Show when={keyboardTrackVisible()}>
 								<TrackRow
 									icon={trackIcons.keyboard}
-									label="Keyboard"
+									label={t("editor.timeline.index.track.keyboard")}
 									onDelete={() => handleDeleteSingleTrack("keyboard")}
 								>
 									<KeyboardTrack
@@ -950,7 +962,7 @@ export function Timeline(props: {
 								{(laneIndex) => (
 									<TrackRow
 										icon={trackIcons.text}
-										label="Text"
+										label={t("editor.timeline.index.track.text")}
 										onDelete={() => handleDeleteTrackLane("text", laneIndex)}
 										onContextMenu={(e) =>
 											handleOpenTrackMenu(e, "text", laneIndex)
@@ -970,7 +982,7 @@ export function Timeline(props: {
 								{(laneIndex) => (
 									<TrackRow
 										icon={trackIcons.mask}
-										label="Mask"
+										label={t("editor.timeline.index.track.mask")}
 										onDelete={() => handleDeleteTrackLane("mask", laneIndex)}
 										onContextMenu={(e) =>
 											handleOpenTrackMenu(e, "mask", laneIndex)
@@ -986,7 +998,7 @@ export function Timeline(props: {
 									</TrackRow>
 								)}
 							</For>
-							<TrackRow icon={trackIcons.zoom} label="Zoom">
+							<TrackRow icon={trackIcons.zoom} label={t("editor.timeline.index.track.zoom")}>
 								<ZoomTrack
 									onDragStateChanged={(v) => {
 										zoomSegmentDragState = v;
@@ -995,7 +1007,7 @@ export function Timeline(props: {
 								/>
 							</TrackRow>
 							<Show when={sceneTrackVisible()}>
-								<TrackRow icon={trackIcons.scene} label="Scene">
+								<TrackRow icon={trackIcons.scene} label={t("editor.timeline.index.track.scene")}>
 									<SceneTrack
 										onDragStateChanged={(v) => {
 											sceneSegmentDragState = v;
@@ -1019,6 +1031,7 @@ function TrackRow(props: {
 	onDelete?: () => void;
 	onContextMenu?: (e: MouseEvent) => void;
 }) {
+	const { t } = useI18n();
 	return (
 		<div class="flex items-stretch gap-2" onContextMenu={props.onContextMenu}>
 			<div
@@ -1042,7 +1055,7 @@ function TrackRow(props: {
 							props.onDelete?.();
 						}}
 						onMouseDown={(e) => e.stopPropagation()}
-						title="Delete track"
+						title={t("editor.timeline.index.deleteTrack")}
 					>
 						<IconCapTrash class="size-4" />
 					</button>

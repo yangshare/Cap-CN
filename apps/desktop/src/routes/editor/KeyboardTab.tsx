@@ -3,6 +3,7 @@ import { Select as KSelect } from "@kobalte/core/select";
 import { cx } from "cva";
 import { batch, createMemo, createSignal, Show } from "solid-js";
 import { Toggle } from "~/components/Toggle";
+import { useI18n } from "~/i18n/I18nProvider";
 import {
 	defaultKeyboardSettings,
 	type KeyboardSettings,
@@ -14,7 +15,6 @@ import IconCapCircleCheck from "~icons/cap/circle-check";
 import { useEditorContext } from "./context";
 import {
 	FONT_OPTIONS,
-	getTextWeightLabel,
 	HexColorInput,
 	KEYBOARD_POSITION_OPTIONS,
 	TEXT_WEIGHT_OPTIONS,
@@ -33,8 +33,47 @@ import {
 export function KeyboardTab(props: {
 	brandColorSwatches: OrganizationBrandColorSwatch[];
 }) {
+	const { t } = useI18n();
 	const { project, setProject, editorState, setEditorState } =
 		useEditorContext();
+
+	const fontLabelMap: Record<string, string> = {
+		"System Sans-Serif": t("editor.keyboardTab.fontSystemSansSerif"),
+		"System Serif": t("editor.keyboardTab.fontSystemSerif"),
+		"System Monospace": t("editor.keyboardTab.fontSystemMonospace"),
+	};
+	const fontLabel = (value: string) =>
+		fontLabelMap[value] ??
+		FONT_OPTIONS.find((f) => f.value === value)?.label ??
+		value;
+
+	const positionLabelMap: Record<string, string> = {
+		"top-left": t("editor.keyboardTab.positionTopLeft"),
+		"top-center": t("editor.keyboardTab.positionTopCenter"),
+		"top-right": t("editor.keyboardTab.positionTopRight"),
+		"bottom-left": t("editor.keyboardTab.positionBottomLeft"),
+		"bottom-center": t("editor.keyboardTab.positionBottomCenter"),
+		"bottom-right": t("editor.keyboardTab.positionBottomRight"),
+	};
+	const positionLabel = (value: string) =>
+		positionLabelMap[value] ??
+		KEYBOARD_POSITION_OPTIONS.find((p) => p.value === value)?.label ??
+		value;
+
+	const textWeightLabelMap: Record<number, string> = {
+		400: t("editor.keyboardTab.textWeightNormal"),
+		500: t("editor.keyboardTab.textWeightMedium"),
+		700: t("editor.keyboardTab.textWeightBold"),
+	};
+	const textWeightLabel = (raw: {
+		label: string;
+		value: number;
+	}) => textWeightLabelMap[raw.value] ?? raw.label;
+	const customTextWeightLabel = (weight: number | null | undefined) => {
+		if (weight != null && textWeightLabelMap[weight]) return textWeightLabelMap[weight];
+		if (weight != null) return t("editor.keyboardTab.textWeightCustom", { weight });
+		return t("editor.keyboardTab.textWeightNormal");
+	};
 
 	const getSetting = <K extends keyof KeyboardSettings>(
 		key: K,
@@ -127,11 +166,11 @@ export function KeyboardTab(props: {
 
 	return (
 		<Field
-			name="Show keyboard"
+			name={t("editor.keyboardTab.showKeyboard")}
 			value={
 				<Toggle checked={getSetting("enabled")} onChange={setKeyboardVisible} />
 			}
-			badge="Beta"
+			badge={t("editor.keyboardTab.badgeBeta")}
 		>
 			<div class="flex flex-col gap-4">
 				<div
@@ -140,10 +179,10 @@ export function KeyboardTab(props: {
 						!getSetting("enabled") && "opacity-50 pointer-events-none",
 					)}
 				>
-					<Field name="Font Settings" icon={<IconLucideKeyboard />}>
+					<Field name={t("editor.keyboardTab.fontSettings")} icon={<IconLucideKeyboard />}>
 						<div class="space-y-3">
 							<div class="flex flex-col gap-2">
-								<span class="text-gray-11 text-sm">Font Family</span>
+								<span class="text-gray-11 text-sm">{t("editor.keyboardTab.fontFamily")}</span>
 								<KSelect<string>
 									options={FONT_OPTIONS.map((f) => f.value)}
 									value={getSetting("font")}
@@ -157,22 +196,14 @@ export function KeyboardTab(props: {
 											item={props.item}
 										>
 											<KSelect.ItemLabel class="flex-1">
-												{
-													FONT_OPTIONS.find(
-														(f) => f.value === props.item.rawValue,
-													)?.label
-												}
+												{fontLabel(props.item.rawValue)}
 											</KSelect.ItemLabel>
 										</MenuItem>
 									)}
 								>
 									<KSelect.Trigger class="w-full flex items-center justify-between rounded-lg px-3 py-2 bg-gray-2 border border-gray-3 text-gray-12 hover:border-gray-4 hover:bg-gray-3 focus:border-blue-9 focus:ring-1 focus:ring-blue-9 transition-colors">
 										<KSelect.Value<string>>
-											{(state) =>
-												FONT_OPTIONS.find(
-													(f) => f.value === state.selectedOption(),
-												)?.label
-											}
+											{(state) => fontLabel(state.selectedOption())}
 										</KSelect.Value>
 										<KSelect.Icon>
 											<IconCapChevronDown />
@@ -193,7 +224,7 @@ export function KeyboardTab(props: {
 							</div>
 
 							<div class="flex flex-col gap-2">
-								<span class="text-gray-11 text-sm">Size</span>
+								<span class="text-gray-11 text-sm">{t("editor.keyboardTab.size")}</span>
 								<Slider
 									value={[getSetting("size")]}
 									onChange={(v) => updateSetting("size", v[0])}
@@ -204,7 +235,7 @@ export function KeyboardTab(props: {
 							</div>
 
 							<div class="flex flex-col gap-2">
-								<span class="text-gray-11 text-sm">Text Color</span>
+								<span class="text-gray-11 text-sm">{t("editor.keyboardTab.textColor")}</span>
 								<HexColorInput
 									value={getSetting("color")}
 									brandColorSwatches={props.brandColorSwatches}
@@ -214,10 +245,10 @@ export function KeyboardTab(props: {
 						</div>
 					</Field>
 
-					<Field name="Background Settings" icon={<IconLucideKeyboard />}>
+					<Field name={t("editor.keyboardTab.backgroundSettings")} icon={<IconLucideKeyboard />}>
 						<div class="space-y-3">
 							<div class="flex flex-col gap-2">
-								<span class="text-gray-11 text-sm">Background Color</span>
+								<span class="text-gray-11 text-sm">{t("editor.keyboardTab.backgroundColor")}</span>
 								<HexColorInput
 									value={getSetting("backgroundColor")}
 									brandColorSwatches={props.brandColorSwatches}
@@ -226,7 +257,7 @@ export function KeyboardTab(props: {
 							</div>
 
 							<div class="flex flex-col gap-2">
-								<span class="text-gray-11 text-sm">Background Opacity</span>
+								<span class="text-gray-11 text-sm">{t("editor.keyboardTab.backgroundOpacity")}</span>
 								<Slider
 									value={[getSetting("backgroundOpacity")]}
 									onChange={(v) => updateSetting("backgroundOpacity", v[0])}
@@ -238,7 +269,7 @@ export function KeyboardTab(props: {
 						</div>
 					</Field>
 
-					<Field name="Position" icon={<IconLucideKeyboard />}>
+					<Field name={t("editor.keyboardTab.position")} icon={<IconLucideKeyboard />}>
 						<KSelect<string>
 							options={KEYBOARD_POSITION_OPTIONS.map((p) => p.value)}
 							value={getSetting("position")}
@@ -252,11 +283,7 @@ export function KeyboardTab(props: {
 									item={props.item}
 								>
 									<KSelect.ItemLabel class="flex-1">
-										{
-											KEYBOARD_POSITION_OPTIONS.find(
-												(p) => p.value === props.item.rawValue,
-											)?.label
-										}
+										{positionLabel(props.item.rawValue)}
 									</KSelect.ItemLabel>
 								</MenuItem>
 							)}
@@ -264,13 +291,7 @@ export function KeyboardTab(props: {
 							<KSelect.Trigger class="w-full flex items-center justify-between rounded-lg px-3 py-2 bg-gray-2 border border-gray-3 text-gray-12 hover:border-gray-4 hover:bg-gray-3 focus:border-blue-9 focus:ring-1 focus:ring-blue-9 transition-colors">
 								<KSelect.Value<string>>
 									{(state) => (
-										<span>
-											{
-												KEYBOARD_POSITION_OPTIONS.find(
-													(p) => p.value === state.selectedOption(),
-												)?.label
-											}
-										</span>
+										<span>{positionLabel(state.selectedOption())}</span>
 									)}
 								</KSelect.Value>
 								<KSelect.Icon>
@@ -288,13 +309,13 @@ export function KeyboardTab(props: {
 						</KSelect>
 					</Field>
 
-					<Field name="Font Weight" icon={<IconLucideKeyboard />}>
+					<Field name={t("editor.keyboardTab.fontWeight")} icon={<IconLucideKeyboard />}>
 						<KSelect
 							options={TEXT_WEIGHT_OPTIONS}
 							optionValue="value"
 							optionTextValue="label"
 							value={{
-								label: "Custom",
+								label: t("editor.keyboardTab.textWeightCustomShort"),
 								value: getSetting("fontWeight"),
 							}}
 							onChange={(value) => {
@@ -307,7 +328,7 @@ export function KeyboardTab(props: {
 									item={selectItemProps.item}
 								>
 									<KSelect.ItemLabel class="flex-1">
-										{selectItemProps.item.rawValue.label}
+										{textWeightLabel(selectItemProps.item.rawValue)}
 									</KSelect.ItemLabel>
 									<KSelect.ItemIndicator class="ml-auto text-blue-9">
 										<IconCapCircleCheck />
@@ -321,8 +342,10 @@ export function KeyboardTab(props: {
 									value: number;
 								}> class="truncate">
 									{(state) =>
-										state.selectedOption()?.label ??
-										getTextWeightLabel(getSetting("fontWeight"))
+										customTextWeightLabel(
+											state.selectedOption()?.value ??
+												getSetting("fontWeight"),
+										)
 									}
 								</KSelect.Value>
 								<KSelect.Icon>
@@ -343,10 +366,10 @@ export function KeyboardTab(props: {
 						</KSelect>
 					</Field>
 
-					<Field name="Animation" icon={<IconLucideKeyboard />}>
+					<Field name={t("editor.keyboardTab.animation")} icon={<IconLucideKeyboard />}>
 						<div class="space-y-3">
 							<div class="flex flex-col gap-2">
-								<span class="text-gray-11 text-sm">Fade Duration</span>
+								<span class="text-gray-11 text-sm">{t("editor.keyboardTab.fadeDuration")}</span>
 								<Slider
 									value={[getSetting("fadeDuration") * 100]}
 									onChange={(v) => updateSetting("fadeDuration", v[0] / 100)}
@@ -360,7 +383,7 @@ export function KeyboardTab(props: {
 							</div>
 
 							<div class="flex flex-col gap-2">
-								<span class="text-gray-11 text-sm">Linger Duration</span>
+								<span class="text-gray-11 text-sm">{t("editor.keyboardTab.lingerDuration")}</span>
 								<Slider
 									value={[getSetting("lingerDuration") * 100]}
 									onChange={(v) => updateSetting("lingerDuration", v[0] / 100)}
@@ -374,7 +397,7 @@ export function KeyboardTab(props: {
 							</div>
 
 							<div class="flex flex-col gap-2">
-								<span class="text-gray-11 text-sm">Grouping Threshold</span>
+								<span class="text-gray-11 text-sm">{t("editor.keyboardTab.groupingThreshold")}</span>
 								<Slider
 									value={[getSetting("groupingThresholdMs")]}
 									onChange={(v) => updateSetting("groupingThresholdMs", v[0])}
@@ -389,11 +412,11 @@ export function KeyboardTab(props: {
 						</div>
 					</Field>
 
-					<Field name="Behavior" icon={<IconLucideKeyboard />}>
+					<Field name={t("editor.keyboardTab.behavior")} icon={<IconLucideKeyboard />}>
 						<div class="space-y-3">
 							<div class="flex flex-col gap-2">
 								<div class="flex items-center justify-between">
-									<span class="text-gray-11 text-sm">Show Modifier Keys</span>
+									<span class="text-gray-11 text-sm">{t("editor.keyboardTab.showModifierKeys")}</span>
 									<Toggle
 										checked={getSetting("showModifiers")}
 										onChange={(checked) =>
@@ -405,7 +428,7 @@ export function KeyboardTab(props: {
 
 							<div class="flex flex-col gap-2">
 								<div class="flex items-center justify-between">
-									<span class="text-gray-11 text-sm">Show Special Keys</span>
+									<span class="text-gray-11 text-sm">{t("editor.keyboardTab.showSpecialKeys")}</span>
 									<Toggle
 										checked={getSetting("showSpecialKeys")}
 										onChange={(checked) =>
@@ -417,7 +440,7 @@ export function KeyboardTab(props: {
 
 							<div class="flex flex-col gap-2">
 								<div class="flex items-center justify-between">
-									<span class="text-gray-11 text-sm">Uppercase</span>
+									<span class="text-gray-11 text-sm">{t("editor.keyboardTab.uppercase")}</span>
 									<Toggle
 										checked={getSetting("uppercase")}
 										onChange={(checked) => updateSetting("uppercase", checked)}
@@ -434,21 +457,21 @@ export function KeyboardTab(props: {
 							class="w-full"
 						>
 							{isGenerating()
-								? "Generating..."
+								? t("editor.keyboardTab.generating")
 								: hasKeyboardSegments()
-									? "Regenerate Keyboard Segments"
-									: "Generate Keyboard Segments"}
+									? t("editor.keyboardTab.regenerateKeyboardSegments")
+									: t("editor.keyboardTab.generateKeyboardSegments")}
 						</Button>
 					</div>
 
 					<Show when={selectedSegment()}>
 						{(seg) => (
 							<Field
-								name="Selected Segment Override"
+								name={t("editor.keyboardTab.selectedSegmentOverride")}
 								icon={<IconLucideKeyboard />}
 							>
 								<div class="space-y-3">
-									<Subfield name="Start Time">
+									<Subfield name={t("editor.keyboardTab.startTime")}>
 										<Input
 											type="number"
 											value={seg().start.toFixed(2)}
@@ -465,7 +488,7 @@ export function KeyboardTab(props: {
 											}
 										/>
 									</Subfield>
-									<Subfield name="End Time">
+									<Subfield name={t("editor.keyboardTab.endTime")}>
 										<Input
 											type="number"
 											value={seg().end.toFixed(2)}
@@ -482,7 +505,7 @@ export function KeyboardTab(props: {
 											}
 										/>
 									</Subfield>
-									<Subfield name="Display Text">
+									<Subfield name={t("editor.keyboardTab.displayText")}>
 										<Input
 											type="text"
 											value={seg().displayText}
@@ -497,7 +520,7 @@ export function KeyboardTab(props: {
 											}
 										/>
 									</Subfield>
-									<Subfield name="Fade Duration Override">
+									<Subfield name={t("editor.keyboardTab.fadeDurationOverride")}>
 										<Slider
 											value={[
 												(seg().fadeDurationOverride ??
@@ -517,7 +540,7 @@ export function KeyboardTab(props: {
 											step={1}
 										/>
 									</Subfield>
-									<Subfield name="Uppercase">
+									<Subfield name={t("editor.keyboardTab.uppercase")}>
 										<Toggle
 											checked={
 												seg().uppercaseOverride ?? getSetting("uppercase")
@@ -540,10 +563,9 @@ export function KeyboardTab(props: {
 
 					<Show when={!hasKeyboardSegments()}>
 						<div class="text-center text-sm text-gray-11 py-4">
-							<p>No keyboard segments yet.</p>
+							<p>{t("editor.keyboardTab.noSegmentsYet")}</p>
 							<p class="text-xs mt-1 text-gray-10">
-								Click "Generate Keyboard Segments" to create segments from
-								recorded keyboard presses.
+								{t("editor.keyboardTab.noSegmentsHint")}
 							</p>
 						</div>
 					</Show>
