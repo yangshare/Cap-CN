@@ -14,6 +14,20 @@ export const dict = {
 		},
 	},
 	settings: {
+		nav: {
+			general: "General",
+			hotkeys: "Shortcuts",
+			cli: "CLI",
+			recordings: "Recordings",
+			screenshots: "Screenshots",
+			automations: "Automations",
+			transcription: "Transcription",
+			integrations: "Integrations",
+			license: "License",
+			experimental: "Experimental",
+			feedback: "Feedback",
+			changelog: "Changelog",
+		},
 		language: {
 			sectionTitle: "Language",
 			sectionDesc: "Choose the interface language.",

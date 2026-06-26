@@ -16,6 +16,20 @@ export const dict = {
 		},
 	},
 	settings: {
+		nav: {
+			general: "通用",
+			hotkeys: "快捷键",
+			cli: "命令行",
+			recordings: "录制",
+			screenshots: "截图",
+			automations: "自动化",
+			transcription: "转写",
+			integrations: "集成",
+			license: "许可证",
+			experimental: "实验性功能",
+			feedback: "反馈",
+			changelog: "更新日志",
+		},
 		language: {
 			sectionTitle: "语言",
 			sectionDesc: "选择界面显示语言。",

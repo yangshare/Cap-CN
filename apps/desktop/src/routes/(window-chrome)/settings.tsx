@@ -17,9 +17,10 @@ import {
 	Show,
 	Suspense,
 } from "solid-js";
+import { Dynamic } from "solid-js/web";
 import { CapErrorBoundary } from "~/components/CapErrorBoundary";
 import { SignInButton } from "~/components/SignInButton";
-
+import { useI18n } from "~/i18n/I18nProvider";
 import { authStore, userProfileStore } from "~/store";
 import { trackEvent } from "~/utils/analytics";
 import { createSignInMutation } from "~/utils/auth";
@@ -31,6 +32,7 @@ import {
 import IconLucideTerminal from "~icons/lucide/terminal";
 import IconLucideUserRound from "~icons/lucide/user-round";
 import IconLucideZap from "~icons/lucide/zap";
+import { createSettingsNavItems, type SettingsNavHref } from "./settings-nav";
 
 const USER_PROFILE_CACHE_GC_MS = 2 * 60 * 60 * 1000;
 const USER_PROFILE_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
@@ -131,6 +133,7 @@ function SettingsContentSkeleton() {
 }
 
 export default function Settings(props: RouteSectionProps) {
+	const { t } = useI18n();
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const signIn = createSignInMutation();
@@ -145,6 +148,20 @@ export default function Settings(props: RouteSectionProps) {
 	const [profileImageObjectUrl, setProfileImageObjectUrl] = createSignal<
 		string | null
 	>(null);
+	const settingsIcons: Record<SettingsNavHref, typeof IconCapSettings> = {
+		general: IconCapSettings,
+		hotkeys: IconCapHotkeys,
+		cli: IconLucideTerminal,
+		recordings: IconLucideSquarePlay,
+		screenshots: IconLucideImage,
+		automations: IconLucideZap,
+		transcription: IconCapCaptions,
+		integrations: IconLucideUnplug,
+		license: IconLucideGift,
+		experimental: IconCapSettings,
+		feedback: IconLucideMessageSquarePlus,
+		changelog: IconLucideBell,
+	};
 	const clearLocalAuth = async () => {
 		setAuth(undefined);
 		queryClient.removeQueries({ queryKey: ["settings-user-profile"] });
@@ -191,68 +208,7 @@ export default function Settings(props: RouteSectionProps) {
 			return response.body;
 		},
 	}));
-	const settingsItems = [
-		{
-			href: "general",
-			name: "General",
-			icon: IconCapSettings,
-		},
-		{
-			href: "hotkeys",
-			name: "Shortcuts",
-			icon: IconCapHotkeys,
-		},
-		{
-			href: "cli",
-			name: "CLI",
-			icon: IconLucideTerminal,
-		},
-		{
-			href: "recordings",
-			name: "Recordings",
-			icon: IconLucideSquarePlay,
-		},
-		{
-			href: "screenshots",
-			name: "Screenshots",
-			icon: IconLucideImage,
-		},
-		{
-			href: "automations",
-			name: "Automations",
-			icon: IconLucideZap,
-		},
-		{
-			href: "transcription",
-			name: "Transcription",
-			icon: IconCapCaptions,
-		},
-		{
-			href: "integrations",
-			name: "Integrations",
-			icon: IconLucideUnplug,
-		},
-		{
-			href: "license",
-			name: "License",
-			icon: IconLucideGift,
-		},
-		{
-			href: "experimental",
-			name: "Experimental",
-			icon: IconCapSettings,
-		},
-		{
-			href: "feedback",
-			name: "Feedback",
-			icon: IconLucideMessageSquarePlus,
-		},
-		{
-			href: "changelog",
-			name: "Changelog",
-			icon: IconLucideBell,
-		},
-	];
+	const settingsItems = createSettingsNavItems(t);
 	const accountName = createMemo(() => {
 		if (!auth()) return "Click to sign in";
 		if (!userProfile.isSuccess) return "Signed in";
@@ -496,8 +452,12 @@ export default function Settings(props: RouteSectionProps) {
 									activeClass="bg-gray-5 pointer-events-none"
 									class="cap-settings-nav-item rounded-lg h-8 hover:bg-gray-3 text-[13px] px-2 flex flex-row items-center gap-1.5 transition-colors"
 								>
-									<item.icon class="opacity-60 size-4" aria-hidden="true" />
-									<span>{item.name}</span>
+									<Dynamic
+										component={settingsIcons[item.href]}
+										class="opacity-60 size-4"
+										aria-hidden="true"
+									/>
+									<span>{item.name()}</span>
 								</A>
 							</li>
 						)}
