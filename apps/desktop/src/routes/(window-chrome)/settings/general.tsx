@@ -25,9 +25,9 @@ import toast from "solid-toast";
 import themePreviewAuto from "~/assets/theme-previews/auto.jpg";
 import themePreviewDark from "~/assets/theme-previews/dark.jpg";
 import themePreviewLight from "~/assets/theme-previews/light.jpg";
-import { Input } from "~/routes/editor/ui";
 import { SUPPORTED_LOCALES } from "~/i18n";
 import { useI18n } from "~/i18n/I18nProvider";
+import { Input } from "~/routes/editor/ui";
 import { authStore, generalSettingsStore } from "~/store";
 import { clientEnv } from "~/utils/env";
 import {
@@ -152,10 +152,7 @@ function AppearanceSection(props: {
 	};
 
 	return (
-		<Section
-			title={t("appearance.title")}
-			description={t("appearance.desc")}
-		>
+		<Section title={t("appearance.title")} description={t("appearance.desc")}>
 			<SectionCard padded>
 				<div
 					class="grid grid-cols-3 gap-3"
@@ -169,8 +166,8 @@ function AppearanceSection(props: {
 									type="button"
 									aria-checked={isSelected()}
 									aria-label={t("appearance.selectTheme", {
-									name: theme.name,
-								})}
+										name: theme.name,
+									})}
 									onClick={() => props.onThemeChange(theme.id)}
 									class="flex flex-col gap-2 items-center group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-9 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-1 rounded-xl"
 								>
@@ -507,10 +504,7 @@ function Inner(props: { initialStore: GeneralSettingsStore | null }) {
 				</Section>
 
 				{ostype === "macos" && (
-					<Section
-						title={t("app.title")}
-						description={t("app.desc")}
-					>
+					<Section title={t("app.title")} description={t("app.desc")}>
 						<SectionRows>
 							<ToggleSettingItem
 								label={t("app.dockIcon.label")}
@@ -556,10 +550,7 @@ function Inner(props: { initialStore: GeneralSettingsStore | null }) {
 					}
 				/>
 
-				<Section
-					title={t("recording.title")}
-					description={t("recording.desc")}
-				>
+				<Section title={t("recording.title")} description={t("recording.desc")}>
 					<SectionRows>
 						<SelectSettingItem
 							label={t("recording.countdown.label")}
@@ -710,12 +701,7 @@ function Inner(props: { initialStore: GeneralSettingsStore | null }) {
 						const url = new URL(v);
 						const origin = url.origin;
 
-						if (
-							!(await confirm(
-								t("serverUrl.confirm", { origin }),
-							))
-						)
-							return;
+						if (!(await confirm(t("serverUrl.confirm", { origin })))) return;
 
 						await authStore.set(undefined);
 						await commands.setServerUrl(origin);
@@ -873,7 +859,8 @@ function StudioQualitySubsection(props: {
 			<div class="flex flex-col gap-1.5 px-3 py-2.5 rounded-lg bg-gray-3">
 				<p class="text-xs text-gray-12">{t(currentTier().summaryKey)}</p>
 				<p class="text-[11px] text-gray-10 leading-snug">
-					<span class="text-gray-11">{t("quality.bestFor")}</span> {t(currentTier().bestForKey)}
+					<span class="text-gray-11">{t("quality.bestFor")}</span>{" "}
+					{t(currentTier().bestForKey)}
 				</p>
 			</div>
 		</div>
@@ -969,11 +956,7 @@ function CapProSection(props: {
 }) {
 	const { t } = useI18n();
 	return (
-		<Section
-			title={t("capPro.title")}
-			description={t("capPro.desc")}
-			pro
-		>
+		<Section title={t("capPro.title")} description={t("capPro.desc")} pro>
 			<SectionRows>
 				<InstantQualitySetting
 					hasCapPro={props.hasCapPro}
@@ -997,10 +980,7 @@ function QualitySection(props: {
 }) {
 	const { t } = useI18n();
 	return (
-		<Section
-			title={t("quality.title")}
-			description={t("quality.desc")}
-		>
+		<Section title={t("quality.title")} description={t("quality.desc")}>
 			<SectionCard>
 				<StudioQualitySubsection
 					value={props.studioQuality}
@@ -1030,10 +1010,7 @@ function ServerURLSetting(props: {
 	};
 
 	return (
-		<Section
-			title={t("serverUrl.title")}
-			description={t("serverUrl.desc")}
-		>
+		<Section title={t("serverUrl.title")} description={t("serverUrl.desc")}>
 			<SectionCard padded>
 				<div class="flex flex-col gap-3">
 					<label class="flex flex-col gap-1.5">
@@ -1397,9 +1374,7 @@ function ExcludedWindowsCard(props: {
 					<Show
 						when={hasExclusions()}
 						fallback={
-							<p class="text-xs text-gray-10">
-									{t("excludedWindows.empty")}
-							</p>
+							<p class="text-xs text-gray-10">{t("excludedWindows.empty")}</p>
 						}
 					>
 						<div class="flex flex-wrap gap-2">

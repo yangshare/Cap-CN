@@ -13,9 +13,28 @@ const dictionaries: Record<Locale, RawDictionary> = {
 	zh,
 };
 
-/** Synchronously resolve a flattened dictionary for the given locale. */
 export function fetchDictionary(locale: Locale): Dictionary {
 	return i18n.flatten(dictionaries[locale]);
+}
+
+const escapeRegExp = (value: string) =>
+	value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+export function resolveTemplate(
+	source: string,
+	variables?: Record<string, string | number>,
+): string {
+	if (!variables) return source;
+
+	let result = source;
+	for (const [key, value] of Object.entries(variables)) {
+		const escapedKey = escapeRegExp(key);
+		const replacement = String(value);
+		result = result
+			.replace(new RegExp(`{{\\s*${escapedKey}\\s*}}`, "g"), () => replacement)
+			.replace(new RegExp(`{\\s*${escapedKey}\\s*}`, "g"), () => replacement);
+	}
+	return result;
 }
 
 export const SUPPORTED_LOCALES: { value: Locale; text: string }[] = [
@@ -23,9 +42,7 @@ export const SUPPORTED_LOCALES: { value: Locale; text: string }[] = [
 	{ value: "en", text: "English" },
 ];
 
-/** Synchronous best-guess default locale from the environment. */
 export function detectLocale(): Locale {
-	const nav =
-		typeof navigator !== "undefined" ? navigator.language : undefined;
+	const nav = typeof navigator !== "undefined" ? navigator.language : undefined;
 	return nav?.toLowerCase().startsWith("zh") ? "zh" : "en";
 }

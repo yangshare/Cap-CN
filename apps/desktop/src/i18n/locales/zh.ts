@@ -1,7 +1,5 @@
 import type { RawDictionary } from "../index.js";
 
-// Simplified Chinese dictionary. Must stay structurally identical to the
-// English source (`RawDictionary`); `satisfies` enforces this at compile time.
 export const dict = {
 	mode: {
 		instant: {
@@ -505,7 +503,8 @@ export const dict = {
 				testing: "测试中...",
 				test: "测试",
 				disconnect: "断开连接",
-				finishInBrowser: "请在浏览器中完成 Google Drive 连接，然后返回此处刷新。",
+				finishInBrowser:
+					"请在浏览器中完成 Google Drive 连接，然后返回此处刷新。",
 				startFailed: "启动 Google Drive 连接失败",
 				testFailed: "Google Drive 连接测试失败",
 				testWorking: "Google Drive 连接正常",
@@ -631,7 +630,8 @@ export const dict = {
 		maxFps: {
 			label: "最大捕获帧率",
 			desc: "屏幕捕获的最大帧率。",
-			descHigh: "屏幕捕获的最大帧率。较高的值在某些系统上可能导致掉帧或 CPU 占用升高。",
+			descHigh:
+				"屏幕捕获的最大帧率。较高的值在某些系统上可能导致掉帧或 CPU 占用升高。",
 			options: {
 				fps30: "30 FPS",
 				fps60: "60 FPS（推荐）",
@@ -654,7 +654,8 @@ export const dict = {
 		add: "添加",
 		restore: "恢复",
 		missingTitle: "未排除推荐的 Cap 窗口",
-		missingDesc: "摄像头、设置或录制窗口可能在屏幕录制中显示为黑块。缺失：{labels}。",
+		missingDesc:
+			"摄像头、设置或录制窗口可能在屏幕录制中显示为黑块。缺失：{labels}。",
 		empty: "当前没有排除任何窗口。",
 		removeAria: "移除排除的窗口",
 	},
@@ -799,8 +800,7 @@ export const dict = {
 		modeInfo: {
 			back: "返回",
 			title: "录制模式",
-			instantDesc:
-				"通过链接即时分享。录制时同步上传，完成后即可立即分享。",
+			instantDesc: "通过链接即时分享。录制时同步上传，完成后即可立即分享。",
 			studioDesc:
 				"以最高画质本地录制，便于后期编辑。非常适合制作带有特效与转场的精修内容。",
 			screenshotDesc:
@@ -845,8 +845,7 @@ export const dict = {
 			instant: {
 				title: "即时模式",
 				tagline: "秒级录制与分享",
-				description:
-					"录制时同步上传。停止录制即可获得分享链接 —— 无需等待。",
+				description: "录制时同步上传。停止录制即可获得分享链接 —— 无需等待。",
 				features: [
 					"即时分享链接",
 					"后台上传",
@@ -972,8 +971,7 @@ export const dict = {
 			restartCancel: "不，我还需要添加它",
 			restartAccessibility:
 				"在系统设置中为 Cap 启用辅助功能后，macOS 可能会一直显示为已拒绝，直到你重启应用。",
-			restartGeneric:
-				"在系统设置中添加 Cap 后，你需要重启应用才能使权限生效。",
+			restartGeneric: "在系统设置中添加 Cap 后，你需要重启应用才能使权限生效。",
 			items: {
 				screenRecording: {
 					name: "屏幕录制",
@@ -1511,14 +1509,17 @@ export const dict = {
 			needsRecoveryTitle: "录制需要恢复",
 			unableToOpenTitle: "无法打开录制",
 			automaticRecoveryTitle: "自动恢复",
-			automaticRecoveryDescription: "Cap 可以尝试自动恢复您的录制。这将从可用的分段数据重建该录制。",
+			automaticRecoveryDescription:
+				"Cap 可以尝试自动恢复您的录制。这将从可用的分段数据重建该录制。",
 			recoverRecording: "恢复录制",
 			recovering: "正在恢复...",
 			recoveryFailed: "恢复失败：{error}",
 			manualInvestigationTitle: "手动排查",
-			manualInvestigationDescription: "您可以打开录制文件夹以直接查看原始文件。",
+			manualInvestigationDescription:
+				"您可以打开录制文件夹以直接查看原始文件。",
 			tipDoubleClick: "提示：在文件夹内双击以浏览内容。",
-			tipRightClick: "提示：右键单击并选择“显示包含的文件夹”以查看 .cap 包内容。",
+			tipRightClick:
+				"提示：右键单击并选择“显示包含的文件夹”以查看 .cap 包内容。",
 			openFolder: "打开文件夹",
 			closeWindow: "关闭窗口",
 		},
@@ -1746,7 +1747,8 @@ export const dict = {
 			uploadFailed: "上传录制失败",
 			title: "导出",
 			preview: "预览",
-			previewTooltip: "这是视频中渲染出的一帧。调整下方设置以查看最终导出视频的画质。",
+			previewTooltip:
+				"这是视频中渲染出的一帧。调整下方设置以查看最终导出视频的画质。",
 			previewUnavailable: "预览不可用",
 			generatingPreview: "正在生成预览...",
 			previewAlt: "导出预览",
@@ -1772,7 +1774,8 @@ export const dict = {
 			exportCursorOnly: "仅导出光标",
 			exportCursorOnlyDescription: "在透明背景上保留相同的光标动作与点击",
 			warning: "警告",
-			cursorOnlyWarningDescription: "导出为透明 MOV。文件较大，最适合合成或后期编辑。",
+			cursorOnlyWarningDescription:
+				"导出为透明 MOV。文件较大，最适合合成或后期编辑。",
 			bitsPerPixel: "每像素位数",
 			rangeTiny: "0.02（极小）",
 			rangeHuge: "0.50（极大）",

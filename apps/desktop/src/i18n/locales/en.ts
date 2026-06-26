@@ -1,6 +1,3 @@
-// English source dictionary — the canonical shape for all locales.
-// Other locale files must `satisfies RawDictionary` against this structure so
-// missing keys fail to compile.
 export const dict = {
 	mode: {
 		instant: {
@@ -113,7 +110,8 @@ export const dict = {
 			addToPathMid: "to your PATH to use",
 			addToPathPost: "from a new terminal.",
 			addedToPathPre: "Added",
-			addedToPathPost: "to your PATH. Restart your terminal to use it, or run this now:",
+			addedToPathPost:
+				"to your PATH. Restart your terminal to use it, or run this now:",
 			copy: "Copy",
 			toastInstalled: "Cap CLI installed",
 			toastInstallFailed: "Failed to install CLI",
@@ -256,8 +254,7 @@ export const dict = {
 				"This condition never matches for the selected trigger.",
 			removeCondition: "Remove condition",
 			actionSkipped: "Skipped here",
-			actionSkippedTitle:
-				"Not supported on this device; will be skipped",
+			actionSkippedTitle: "Not supported on this device; will be skipped",
 			moveUp: "Move up",
 			moveDown: "Move down",
 			removeAction: "Remove action",
@@ -287,14 +284,12 @@ export const dict = {
 			fieldFrameRate: "Frame rate",
 			fpsLabel: "{n} FPS",
 			fieldCompression: "Compression",
-			fieldDestination:
-				"Destination folder (optional, blank = project folder)",
+			fieldDestination: "Destination folder (optional, blank = project folder)",
 			placeholderProjectFolder: "Project folder",
 			toastSaveFailed: "Failed to save automations",
 			toastAdded: 'Added "{name}"',
 			toastAllSupported: "All actions supported on this device",
-			toastUnsupported:
-				"{count} action(s) not supported here: {actions}",
+			toastUnsupported: "{count} action(s) not supported here: {actions}",
 			toastTestFailed: "Failed to test automation",
 			ruleNoActions: "{trigger} → no actions yet",
 			ruleAutoName: "{trigger} automation",
@@ -420,8 +415,7 @@ export const dict = {
 				},
 				exportStudio: {
 					name: "Auto-export when you finish recording",
-					description:
-						"Render an MP4 the second a Studio recording wraps up.",
+					description: "Render an MP4 the second a Studio recording wraps up.",
 				},
 				uploadShare: {
 					name: "Upload and grab the share link",
@@ -497,8 +491,7 @@ export const dict = {
 					"S3 connection test failed. Check your config and network connection.",
 				testTimeout:
 					"Connection test timed out after 5 seconds. Please check your endpoint URL and network connection.",
-				testSuccess:
-					"S3 configuration test successful! Connection is working.",
+				testSuccess: "S3 configuration test successful! Connection is working.",
 			},
 			googleDriveConfig: {
 				title: "Google Drive",
@@ -532,8 +525,7 @@ export const dict = {
 				startFailed: "Failed to start Google Drive connection",
 				testFailed: "Google Drive connection test failed",
 				testWorking: "Google Drive connection is working",
-				testWorkingEmail:
-					"Google Drive connection is working for {email}",
+				testWorkingEmail: "Google Drive connection is working for {email}",
 				setActiveFailed: "Failed to update active storage provider",
 				disconnectFailed: "Failed to disconnect Google Drive",
 				disconnected: "Google Drive disconnected",
@@ -596,7 +588,8 @@ export const dict = {
 			descPro: "Choose the maximum upload resolution for Instant recordings.",
 			descFree:
 				"Instant recordings are locked to 720p. Cap Pro unlocks higher resolutions.",
-			upgradeToast: "Upgrade to Cap Pro to record Instant Mode videos above 720p.",
+			upgradeToast:
+				"Upgrade to Cap Pro to record Instant Mode videos above 720p.",
 			upgrade: "Upgrade",
 			resTiers: {
 				p720: { summary: "Smallest size, low bandwidth." },
@@ -843,7 +836,8 @@ export const dict = {
 				"Couldn't check for updates automatically. You can download the latest version of Cap from cap.so/download — your data won't be lost.",
 			download: "Download",
 			later: "Later",
-			available: "Version {version} of Cap is available, would you like to install it?",
+			available:
+				"Version {version} of Cap is available, would you like to install it?",
 			update: "Update",
 			ignore: "Ignore",
 		},
@@ -944,7 +938,8 @@ export const dict = {
 			items: {
 				freeToUse: {
 					question: "Is Cap free to use?",
-					answer: "Cap is free for personal use. For teams and commercial use, check out our",
+					answer:
+						"Cap is free for personal use. For teams and commercial use, check out our",
 					pricingLink: "pricing plans",
 					answerSuffix: ".",
 				},
@@ -1019,7 +1014,8 @@ export const dict = {
 				},
 				microphone: {
 					name: "Microphone",
-					description: "This permission is required to record audio in your Caps.",
+					description:
+						"This permission is required to record audio in your Caps.",
 				},
 				camera: {
 					name: "Camera",
@@ -1031,13 +1027,16 @@ export const dict = {
 	},
 	recordingInProgress: {
 		issues: {
-			micDisconnected: "Microphone disconnected. Silence will be used until it reconnects.",
-			cameraDisconnected: "Camera disconnected. Recording continues without camera overlay.",
+			micDisconnected:
+				"Microphone disconnected. Silence will be used until it reconnects.",
+			cameraDisconnected:
+				"Camera disconnected. Recording continues without camera overlay.",
 		},
 		micTitleDisconnected: "Microphone disconnected",
 		micTitleNamed: "Microphone: {name}",
 		micTitleNotConfigured: "Microphone not configured",
-		cameraDisconnectedTooltip: "Camera disconnected - recording continues without camera overlay",
+		cameraDisconnectedTooltip:
+			"Camera disconnected - recording continues without camera overlay",
 		qualityDegradedAria: "Recording quality degraded",
 		starting: "Starting",
 		stopRecording: "Stop recording",
@@ -1057,7 +1056,8 @@ export const dict = {
 			webcamLocked: "Webcam (locked for this recording)",
 		},
 		dialogs: {
-			restartConfirm: "Are you sure you want to restart the recording? The current recording will be discarded.",
+			restartConfirm:
+				"Are you sure you want to restart the recording? The current recording will be discarded.",
 			restartTitle: "Confirm Restart",
 			restartOk: "Restart",
 			restartCancel: "Cancel",
@@ -1213,7 +1213,8 @@ export const dict = {
 			simulating: "Simulating update to v{version}...",
 			userDeclined: "User declined update",
 			dialog: {
-				message: "Version {version} of Cap is available, would you like to install it?",
+				message:
+					"Version {version} of Cap is available, would you like to install it?",
 				title: "Update Cap",
 				update: "Update",
 				ignore: "Ignore",
@@ -1340,7 +1341,8 @@ export const dict = {
 				animationStyles: {
 					slow: {
 						label: "Slow",
-						description: "Relaxed easing with a gentle follow and higher inertia.",
+						description:
+							"Relaxed easing with a gentle follow and higher inertia.",
 					},
 					smooth: {
 						label: "Smooth",
@@ -1348,7 +1350,8 @@ export const dict = {
 					},
 					mellow: {
 						label: "Mellow",
-						description: "Balanced smoothing for everyday tutorials and walkthroughs.",
+						description:
+							"Balanced smoothing for everyday tutorials and walkthroughs.",
 					},
 					fast: {
 						label: "Fast",
@@ -1356,7 +1359,8 @@ export const dict = {
 					},
 					custom: {
 						label: "Custom",
-						description: "Tune tension, friction, and mass manually for full control.",
+						description:
+							"Tune tension, friction, and mass manually for full control.",
 					},
 				},
 			},
@@ -1440,11 +1444,13 @@ export const dict = {
 			},
 			clip: {
 				segmentSettings: "Segment Settings",
-				segmentSettingsDesc: "These settings apply to only the selected segment",
+				segmentSettingsDesc:
+					"These settings apply to only the selected segment",
 				speedField: "Speed",
 				speedMuteNote: "Modifying speed will mute this segment's audio.",
 				clipSettings: "Clip Settings",
-				clipSettingsDesc: "These settings apply to all segments for the current clip",
+				clipSettingsDesc:
+					"These settings apply to all segments for the current clip",
 				systemAudioOffset: "System Audio Offset",
 				microphoneOffset: "Microphone Offset",
 				cameraOffset: "Camera Offset",
@@ -1460,7 +1466,8 @@ export const dict = {
 				descriptions: {
 					cameraOnly: "Shows only the camera feed",
 					hideCamera: "Shows only the screen recording",
-					splitScreen: "Screen and camera side by side (auto-stacks in portrait)",
+					splitScreen:
+						"Screen and camera side by side (auto-stacks in portrait)",
 					default: "Shows both screen and camera",
 				},
 				transition: "Transition",
@@ -1476,7 +1483,8 @@ export const dict = {
 			addingClip: "Adding clip...",
 			clipAdded: "Clip added",
 			failedToAddClip: "Failed to add clip: {message}",
-			exportRunningPrompt: "An export is currently running. Are you sure you want to quit?",
+			exportRunningPrompt:
+				"An export is currently running. Are you sure you want to quit?",
 			exportInProgress: "Export in progress",
 			resumeExport: "Resume export",
 			quitEditor: "Quit editor",
@@ -1534,7 +1542,8 @@ export const dict = {
 			funMessage8: "Cap-able of great things...",
 		},
 		captionsRegen: {
-			errorNoCaptions: "No captions were generated. The audio might be too quiet or unclear.",
+			errorNoCaptions:
+				"No captions were generated. The audio might be too quiet or unclear.",
 			regenerated: "Captions regenerated!",
 			errorFailed: "Failed to regenerate captions",
 			regenerating: "Regenerating...",
@@ -1544,14 +1553,18 @@ export const dict = {
 			needsRecoveryTitle: "Recording Needs Recovery",
 			unableToOpenTitle: "Unable to Open Recording",
 			automaticRecoveryTitle: "Automatic Recovery",
-			automaticRecoveryDescription: "Cap can attempt to recover your recording automatically. This will reconstruct the recording from available segment data.",
+			automaticRecoveryDescription:
+				"Cap can attempt to recover your recording automatically. This will reconstruct the recording from available segment data.",
 			recoverRecording: "Recover Recording",
 			recovering: "Recovering...",
 			recoveryFailed: "Recovery failed: {error}",
 			manualInvestigationTitle: "Manual Investigation",
-			manualInvestigationDescription: "You can open the recording folder to inspect the raw files directly.",
-			tipDoubleClick: "Tip: Double-click inside the folder to browse the contents.",
-			tipRightClick: "Tip: Right-click and select \"Show Enclosing Folder\" to see the .cap bundle contents.",
+			manualInvestigationDescription:
+				"You can open the recording folder to inspect the raw files directly.",
+			tipDoubleClick:
+				"Tip: Double-click inside the folder to browse the contents.",
+			tipRightClick:
+				'Tip: Right-click and select "Show Enclosing Folder" to see the .cap bundle contents.',
 			openFolder: "Open Folder",
 			closeWindow: "Close Window",
 		},
@@ -1573,7 +1586,7 @@ export const dict = {
 			noPresets: "No Presets",
 			defaultBadge: "Default",
 			apply: "Apply",
-			savedToast: "Saved settings to \"{name}\"",
+			savedToast: 'Saved settings to "{name}"',
 			saveToPreset: "Save settings to preset",
 			setAsDefault: "Set as default",
 			rename: "Rename",
@@ -1779,14 +1792,17 @@ export const dict = {
 			uploadFailed: "Failed to upload recording",
 			title: "Export",
 			preview: "Preview",
-			previewTooltip: "This is a rendered frame from your video. Adjust the settings below to see the quality of the final exported video.",
+			previewTooltip:
+				"This is a rendered frame from your video. Adjust the settings below to see the quality of the final exported video.",
 			previewUnavailable: "Preview unavailable",
 			generatingPreview: "Generating preview...",
 			previewAlt: "Export preview",
 			backToEditor: "Back to editor",
 			destination: "Destination",
-			cursorOnlyExportRestriction: "Cursor-only exports can only be saved to a file or clipboard",
-			transparentExportRestriction: "Transparent exports can only be saved to a file or clipboard",
+			cursorOnlyExportRestriction:
+				"Cursor-only exports can only be saved to a file or clipboard",
+			transparentExportRestriction:
+				"Transparent exports can only be saved to a file or clipboard",
 			organization: "Organization",
 			format: "Format",
 			cursorOnlyFormatReason: "Cursor-only export always uses transparent MOV",
@@ -1798,20 +1814,24 @@ export const dict = {
 			smallerFile: "Smaller file",
 			largerFile: "Larger file",
 			optimizeFilesize: "Optimize file size",
-			optimizeFilesizeDescription: "Re-encodes with software for much smaller files (slower)",
+			optimizeFilesizeDescription:
+				"Re-encodes with software for much smaller files (slower)",
 			advancedOptions: "Advanced Options",
 			hideOptions: "Hide options",
 			showOptions: "Show options",
 			exportCursorOnly: "Export cursor only",
-			exportCursorOnlyDescription: "Keeps the same cursor motion and clicks on a transparent background",
+			exportCursorOnlyDescription:
+				"Keeps the same cursor motion and clicks on a transparent background",
 			warning: "Warning",
-			cursorOnlyWarningDescription: "Exports as a transparent MOV. Files are large and best for compositing or editing.",
+			cursorOnlyWarningDescription:
+				"Exports as a transparent MOV. Files are large and best for compositing or editing.",
 			bitsPerPixel: "Bits per pixel",
 			rangeTiny: "0.02 (tiny)",
 			rangeHuge: "0.50 (huge)",
 			usingCustomBitrate: "Using custom bitrate",
 			forceFfmpegDecoder: "Force FFmpeg decoder",
-			forceFfmpegDecoderDescription: "Skip hardware decoder (auto-fallback enabled)",
+			forceFfmpegDecoderDescription:
+				"Skip hardware decoder (auto-fallback enabled)",
 			signInToShare: "Sign in to share",
 			exportToFile: "Export to File",
 			exportToClipboard: "Export to Clipboard",
@@ -1835,7 +1855,8 @@ export const dict = {
 			openFile: "Open File",
 			copyToClipboard: "Copy to Clipboard",
 			tipLabel: "Tip:",
-			tipBody: "Use Instant Mode for your next recording to record and upload on the fly, with no exporting required.",
+			tipBody:
+				"Use Instant Mode for your next recording to record and upload on the fly, with no exporting required.",
 			frames: "frames",
 			cancel: "Cancel",
 		},
@@ -2004,7 +2025,8 @@ export const dict = {
 		},
 		share: {
 			errorSignInRequired: "You need to sign in to share recordings",
-			errorUpgradeRequired: "Upgrade required to share recordings longer than 5 minutes",
+			errorUpgradeRequired:
+				"Upgrade required to share recordings longer than 5 minutes",
 			errorVerifySubscription: "Failed to verify your subscription status",
 			errorFeatureRequiresUpgrade: "This feature requires an upgraded plan",
 			errorUploadFailed: "Failed to upload recording",

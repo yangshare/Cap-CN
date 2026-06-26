@@ -1,5 +1,6 @@
 import * as i18n from "@solid-primitives/i18n";
 import {
+	type Accessor,
 	createContext,
 	createMemo,
 	createSignal,
@@ -7,10 +8,14 @@ import {
 	onMount,
 	type ParentProps,
 	useContext,
-	type Accessor,
 } from "solid-js";
 
-import { detectLocale, fetchDictionary, type Locale } from "./index.js";
+import {
+	detectLocale,
+	fetchDictionary,
+	type Locale,
+	resolveTemplate,
+} from "./index.js";
 import { i18nSettingsStore } from "./store.js";
 
 type TranslateFn = (
@@ -26,35 +31,19 @@ type I18nContextValue = {
 
 const I18nContext = createContext<I18nContextValue>();
 
-/**
- * Provides a reactive translator and locale to the whole app.
- *
- * The locale is seeded synchronously from `detectLocale()` (so there is no
- * flash of the wrong language on first paint), then reconciled with the
- * persisted value and kept in sync across windows via `i18nSettingsStore`.
- */
 export function I18nProvider(props: ParentProps) {
 	const [locale, setLocaleSignal] = createSignal<Locale>(detectLocale());
 
 	const dict = createMemo(() => fetchDictionary(locale()));
-	const translator = i18n.translator(dict, i18n.resolveTemplate);
+	const translator = i18n.translator(dict, resolveTemplate);
 
-	// `t` reads the current translator lazily, so call sites stay reactive to
-	// locale changes without needing to unwrap an accessor themselves. The
-	// translator is strongly typed to exact dictionary paths; we expose a
-	// loose `string` API and assert back to `string` at the boundary.
 	const t: TranslateFn = (path, variables) =>
-		(translator as (path: string, variables?: Record<string, string>) => string)(
-			path,
-			variables
-				? Object.fromEntries(
-						Object.entries(variables).map(([key, value]) => [
-							key,
-							String(value),
-						]),
-					)
-				: undefined,
-		);
+		(
+			translator as (
+				path: string,
+				variables?: Record<string, string | number>,
+			) => string
+		)(path, variables);
 
 	const setLocale = (next: Locale) => {
 		setLocaleSignal(next);
@@ -87,7 +76,9 @@ export function I18nProvider(props: ParentProps) {
 				}
 				stopListening = unlisten;
 			})
-			.catch((error) => console.error("Failed to listen i18n settings:", error));
+			.catch((error) =>
+				console.error("Failed to listen i18n settings:", error),
+			);
 	});
 
 	onCleanup(() => {
