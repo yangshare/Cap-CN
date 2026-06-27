@@ -190,16 +190,51 @@ async function main() {
 		);
 		console.log("Copied ffmpeg/lib and ffmpeg/include to target/native-deps");
 
-		const { stdout: vcInstallDir } = await exec(
-			// biome-ignore lint/suspicious/noTemplateCurlyInString: PowerShell syntax, not JS template literal
-			'$(& "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -property installationPath)',
-			{ shell: "powershell.exe" },
-		);
+		let libclangPath = "";
+		try {
+			const { stdout: vcInstallDir } = await exec(
+				// biome-ignore lint/suspicious/noTemplateCurlyInString: PowerShell syntax, not JS template literal
+				'$(& "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe" -latest -property installationPath)',
+				{ shell: "powershell.exe" },
+			);
+			const vsLlvm = path.join(
+				vcInstallDir.trim(),
+				"VC/Tools/LLVM/x64/bin/libclang.dll",
+			);
+			if (await fileExists(vsLlvm)) libclangPath = vsLlvm;
+		} catch {
+			// vswhere 不可用或未安装 VS Clang 工具，回退到下方系统 LLVM 探测。
+		}
 
-		const libclangPath = path.join(
-			vcInstallDir.trim(),
-			"VC/Tools/LLVM/x64/bin/libclang.dll",
-		);
+		if (!libclangPath) {
+			const candidates = [
+				"C:/Program Files/LLVM/bin/libclang.dll",
+				"C:/Program Files (x86)/LLVM/bin/libclang.dll",
+			];
+			try {
+				const { stdout: clangOut } = await exec("where.exe clang", {
+					shell: "powershell.exe",
+				});
+				const first = clangOut.split(/\r?\n/)[0]?.trim();
+				if (first)
+					candidates.unshift(
+						path.join(path.dirname(first), "libclang.dll"),
+					);
+			} catch {
+				// clang 不在 PATH，忽略。
+			}
+			for (const candidate of candidates) {
+				if (await fileExists(candidate)) {
+					libclangPath = candidate;
+					break;
+				}
+			}
+		}
+
+		if (!libclangPath)
+			throw new Error(
+				'未找到 libclang.dll：请安装 LLVM（winget install LLVM.LLVM）或 Visual Studio 的 "C++ Clang tools for Windows" 组件后重试。',
+			);
 
 		cargoConfigContents += `LIBCLANG_PATH = "${libclangPath.replaceAll(
 			"\\",
