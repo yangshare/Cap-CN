@@ -51,6 +51,7 @@ jobs:
         uses: ./.github/actions/setup-rust-cache
         with:
           target: ${{ env.RUST_TARGET_TRIPLE }}
+          save-cache: "true"
 
       - name: Setup JS
         uses: ./.github/actions/setup-js
