@@ -80,11 +80,16 @@ jobs:
         run: ./scripts/build-desktop-binaries.sh ${{ env.RUST_TARGET_TRIPLE }}
 
       # 构建 Tauri 桌面端并打包 NSIS 安装程序（未签名）。
-      # 不设置 TAURI_SIGNING_PRIVATE_KEY，Tauri 会跳过 updater 签名（不影响安装包生成，仅自动更新不可用）。
+      # 追加内联 config 覆盖：关闭 updater 产物（createUpdaterArtifacts=false）并清空 pubkey，
+      # 否则 Tauri 检测到「有公钥无私钥」会报错退出（个人自用版本不需要官方自动更新）。
       - name: Build app
         working-directory: apps/desktop
         shell: bash
-        run: pnpm build:tauri --target ${{ env.RUST_TARGET_TRIPLE }} --config src-tauri/tauri.prod.conf.json --bundles nsis
+        run: |
+          pnpm build:tauri --target ${{ env.RUST_TARGET_TRIPLE }} \
+            --config src-tauri/tauri.prod.conf.json \
+            --config '{"bundle":{"createUpdaterArtifacts":false},"plugins":{"updater":{"active":false,"pubkey":""}}}' \
+            --bundles nsis
         env:
           # https://github.com/tauri-apps/tauri-action/issues/740
           CI: false
