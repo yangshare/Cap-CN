@@ -1,0 +1,154 @@
+name: "Build Desktop (Windows)"
+
+# 精简版桌面端构建：仅 Windows，不签名/不公证/不上架，
+# 产物（未签名 NSIS 安装包）作为 artifact 上传，后端默认连官方云 https://cap.so。
+# 适合个人/自用：从 Actions 页面手动触发，或 push 到 CN 分支（改动桌面相关文件时）自动触发。
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - CN
+    paths:
+      - "apps/desktop/**"
+      - "apps/cli/**"
+      - "crates/**"
+      - "packages/**"
+      - ".cargo/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "pnpm-lock.yaml"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - "scripts/**"
+      - ".github/workflows/build-desktop.yml"
+
+# 同一分支的新构建会取消正在跑的旧构建，省额度
+concurrency:
+  group: build-desktop-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  RUST_TARGET_TRIPLE: x86_64-pc-windows-msvc
+
+jobs:
+  build:
+    name: Build Windows Desktop
+    runs-on: windows-2022
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Rust setup
+        uses: dtolnay/rust-toolchain@1.88.0
+        with:
+          targets: ${{ env.RUST_TARGET_TRIPLE }}
+
+      - name: Rust cache
+        uses: ./.github/actions/setup-rust-cache
+        with:
+          target: ${{ env.RUST_TARGET_TRIPLE }}
+
+      - name: Setup JS
+        uses: ./.github/actions/setup-js
+
+      # 只写构建必需的两个变量：
+      # - VITE_ENVIRONMENT=production 影响前端构建模式
+      # - RUST_TARGET_TRIPLE 给 setup.js / sidecar 构建用
+      # 后端地址 VITE_SERVER_URL 不写，运行时默认 https://cap.so（官方云）
+      - name: Create .env file
+        shell: bash
+        run: |
+          {
+            echo "VITE_ENVIRONMENT=production"
+            echo "RUST_TARGET_TRIPLE=${{ env.RUST_TARGET_TRIPLE }}"
+          } >> .env
+
+      # cap-setup = node scripts/setup.js：下载 FFmpeg、生成 .cargo/config.toml（LIBCLANG_PATH 等）
+      - name: Run cap-setup
+        shell: bash
+        run: pnpm -w cap-setup
+        env:
+          RUST_TARGET_TRIPLE: ${{ env.RUST_TARGET_TRIPLE }}
+
+      # 构建 cap-muxer / cap-exporter 等 Rust sidecar 二进制
+      - name: Build desktop sidecar binaries
+        shell: bash
+        run: ./scripts/build-desktop-binaries.sh ${{ env.RUST_TARGET_TRIPLE }}
+
+      # 构建 Tauri 桌面端并打包 NSIS 安装程序（未签名）。
+      # 不设置 TAURI_SIGNING_PRIVATE_KEY，Tauri 会跳过 updater 签名（不影响安装包生成，仅自动更新不可用）。
+      - name: Build app
+        working-directory: apps/desktop
+        shell: bash
+        run: pnpm build:tauri --target ${{ env.RUST_TARGET_TRIPLE }} --config src-tauri/tauri.prod.conf.json --bundles nsis
+        env:
+          # https://github.com/tauri-apps/tauri-action/issues/740
+          CI: false
+          RUST_TARGET_TRIPLE: ${{ env.RUST_TARGET_TRIPLE }}
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: cap-windows-installer
+          path: target/${{ env.RUST_TARGET_TRIPLE }}/release/bundle/nsis/*.exe
+          if-no-files-found: error
+          retention-days: 14
+
+      # 打包「绿色版」zip：解压即用，无需安装。
+      # 收集主程序 + 3 个 sidecar + FFmpeg DLL + resources（背景图/rive）。
+      - name: Build portable zip
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $triple = $env:RUST_TARGET_TRIPLE
+          $staging = "cap-portable"
+          New-Item -ItemType Directory -Path $staging -Force | Out-Null
+
+          # 1) 主程序
+          $mainExe = "target/$triple/release/Cap.exe"
+          if (-not (Test-Path $mainExe)) { throw "主程序未找到: $mainExe" }
+          Copy-Item $mainExe $staging
+          Write-Host "已复制主程序: $mainExe"
+
+          # 2) sidecar（从 binaries 目录复制并去掉 target triple 后缀，Tauri 运行时按此名查找）
+          $binaries = "apps/desktop/src-tauri/binaries"
+          foreach ($name in @("cap-muxer", "cap-exporter", "cap-cli")) {
+            $src = Join-Path $binaries "$name-$triple.exe"
+            if (-not (Test-Path $src)) { throw "sidecar 未找到: $src" }
+            Copy-Item $src (Join-Path $staging "$name.exe")
+          }
+          Write-Host "已复制 sidecar: cap-muxer / cap-exporter / cap-cli"
+
+          # 3) FFmpeg 运行时 DLL（cap-muxer/cap-exporter 动态链接，运行时需要）
+          $dllSrc = "target/ffmpeg/bin"
+          if (Test-Path $dllSrc) {
+            Copy-Item "$dllSrc/*.dll" $staging -Force
+            Write-Host "已复制 FFmpeg DLL: $((Get-ChildItem "$dllSrc/*.dll").Count) 个"
+          } else {
+            Write-Host "::warning::未找到 $dllSrc，绿色版可能因缺少 FFmpeg DLL 无法运行"
+          }
+
+          # 4) resources：背景图 + rive 动画（路径对应 tauri.conf.json 的 resources 配置）
+          New-Item -ItemType Directory -Path "$staging/assets/backgrounds" -Force | Out-Null
+          Copy-Item "apps/desktop/src-tauri/assets/backgrounds/*" "$staging/assets/backgrounds" -Recurse -Force
+          New-Item -ItemType Directory -Path "$staging/assets/rive" -Force | Out-Null
+          Copy-Item "apps/desktop/src/assets/rive/*.riv" "$staging/assets/rive" -Force
+          Write-Host "已复制 resources（背景图 + rive）"
+
+          # 5) 打包 zip（内容直接位于 zip 根，解压即见 Cap.exe）
+          Compress-Archive -Path "$staging/*" -DestinationPath "cap-windows-portable.zip" -Force
+          $count = (Get-ChildItem -Recurse $staging).Count
+          $size = [math]::Round((Get-Item "cap-windows-portable.zip").Length / 1MB, 1)
+          Write-Host "绿色版打包完成: cap-windows-portable.zip（$count 个文件, $size MB）"
+
+      - name: Upload Windows portable zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: cap-windows-portable
+          path: cap-windows-portable.zip
+          if-no-files-found: error
+          retention-days: 14
