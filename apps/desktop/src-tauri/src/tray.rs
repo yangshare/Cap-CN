@@ -132,18 +132,6 @@ struct PreviousItemsCache {
     items: Vec<CachedPreviousItem>,
 }
 
-fn recordings_path(app: &AppHandle) -> PathBuf {
-    let path = app.path().app_data_dir().unwrap().join("recordings");
-    std::fs::create_dir_all(&path).unwrap_or_default();
-    path
-}
-
-fn screenshots_path(app: &AppHandle) -> PathBuf {
-    let path = app.path().app_data_dir().unwrap().join("screenshots");
-    std::fs::create_dir_all(&path).unwrap_or_default();
-    path
-}
-
 fn truncate_title(title: &str) -> String {
     if title.chars().count() <= MAX_TITLE_LENGTH {
         title.to_string()
@@ -251,9 +239,9 @@ fn load_single_item(
 
 fn load_all_previous_items(app: &AppHandle, load_thumbnails: bool) -> Vec<CachedPreviousItem> {
     let mut items = Vec::new();
-    let screenshots_dir = screenshots_path(app);
+    let screenshots_dir = crate::screenshots_path(app);
 
-    let recordings_dir = recordings_path(app);
+    let recordings_dir = crate::recordings_path(app);
     if recordings_dir.exists()
         && let Ok(entries) = std::fs::read_dir(&recordings_dir)
     {
@@ -533,7 +521,7 @@ fn build_tray_menu(app: &AppHandle, cache: &PreviousItemsCache) -> tauri::Result
 }
 
 fn add_new_item_to_cache(cache: &Arc<Mutex<PreviousItemsCache>>, app: &AppHandle, path: PathBuf) {
-    let screenshots_dir = screenshots_path(app);
+    let screenshots_dir = crate::screenshots_path(app);
 
     let Some(new_item) = load_single_item(&path, &screenshots_dir, true) else {
         return;
@@ -567,7 +555,7 @@ fn refresh_tray_menu(app: &AppHandle, cache: &Arc<Mutex<PreviousItemsCache>>) {
 fn handle_previous_item_click(app: &AppHandle, path_str: &str) {
     let path = PathBuf::from(path_str);
 
-    let screenshots_dir = screenshots_path(app);
+    let screenshots_dir = crate::screenshots_path(app);
     let is_screenshot = path.extension().and_then(|s| s.to_str()) == Some("cap")
         && path.parent().map(|p| p == screenshots_dir).unwrap_or(false);
 
@@ -858,7 +846,7 @@ pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
         let app_clone = app.clone();
         let cache_clone = cache.clone();
         std::thread::spawn(move || {
-            let screenshots_dir = screenshots_path(&app_clone);
+            let screenshots_dir = crate::screenshots_path(&app_clone);
             let items_needing_thumbnails: Vec<PathBuf> = {
                 let cache_guard = cache_clone.lock().unwrap();
                 cache_guard
