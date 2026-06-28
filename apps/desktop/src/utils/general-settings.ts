@@ -5,6 +5,8 @@ export type GeneralSettingsStore = TauriGeneralSettingsStore & {
 	transcriptionHints?: string[];
 	enableTelemetry?: boolean;
 	outOfProcessMuxer?: boolean;
+	customRecordingsDir?: string | null;
+	customScreenshotsDir?: string | null;
 };
 
 export const DEFAULT_TRANSCRIPTION_HINTS = [
@@ -30,6 +32,8 @@ export function createDefaultGeneralSettings(): GeneralSettingsStore {
 		maxFps: 60,
 		transcriptionHints: [...DEFAULT_TRANSCRIPTION_HINTS],
 		enableTelemetry: true,
+		customRecordingsDir: null,
+		customScreenshotsDir: null,
 	};
 }
 
