@@ -1418,7 +1418,7 @@ pub async fn start_recording(
     let filename = project_name.replace(":", ".");
     let filename = format!("{}.cap", sanitize_filename::sanitize(&filename));
 
-    let recordings_base_dir = app.path().app_data_dir().unwrap().join("recordings");
+    let recordings_base_dir = crate::recordings_path(&app);
 
     ensure_dir(&recordings_base_dir)
         .map_err(|e| format!("Failed to create recordings directory: {e}"))?;
@@ -2612,7 +2612,7 @@ pub async fn take_screenshot(
     let filename = project_name.replace(":", ".");
     let filename = format!("{}.cap", sanitize_filename::sanitize(&filename));
 
-    let screenshots_base_dir = app.path().app_data_dir().unwrap().join("screenshots");
+    let screenshots_base_dir = crate::screenshots_path(&app);
 
     let project_file_path = screenshots_base_dir.join(&cap_utils::ensure_unique_filename(
         &filename,
