@@ -1,29 +1,18 @@
 name: "Build Desktop (Windows)"
 
 # 精简版桌面端构建：仅 Windows，不签名/不公证/不上架，
-# 产物（未签名 NSIS 安装包）作为 artifact 上传，后端默认连官方云 https://cap.so。
-# 适合个人/自用：从 Actions 页面手动触发，或 push 到 CN 分支（改动桌面相关文件时）自动触发。
+# 产物（未签名 NSIS 安装包 + 绿色版 zip）：
+#   - 推送 v* tag（如 v0.5.2）时，构建后发布到该 tag 对应的 GitHub Release（附件挂在版本下面）；
+#   - workflow_dispatch 手动触发时，只产 artifact，不发 Release。
+# 后端默认连官方云 https://cap.so。
 
 on:
   workflow_dispatch:
   push:
-    branches:
-      - CN
-    paths:
-      - "apps/desktop/**"
-      - "apps/cli/**"
-      - "crates/**"
-      - "packages/**"
-      - ".cargo/**"
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - "pnpm-lock.yaml"
-      - "package.json"
-      - "pnpm-workspace.yaml"
-      - "scripts/**"
-      - ".github/workflows/build-desktop.yml"
+    tags:
+      - "v*"
 
-# 同一分支的新构建会取消正在跑的旧构建，省额度
+# 同一 ref 的新构建会取消正在跑的旧构建，省额度
 concurrency:
   group: build-desktop-windows-${{ github.ref }}
   cancel-in-progress: true
@@ -37,7 +26,7 @@ jobs:
     runs-on: windows-2022
     timeout-minutes: 90
     permissions:
-      contents: read
+      contents: write   # 发布 GitHub Release 需要写权限
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -158,3 +147,17 @@ jobs:
           path: cap-windows-portable.zip
           if-no-files-found: error
           retention-days: 14
+
+      # 仅在推送 v* tag 时触发：把构建产物作为附件发布到该 tag 对应的 GitHub Release。
+      # generate_release_notes=true 会自动汇总自上一个 Release 以来的 commit（类似参考仓库的版本说明）。
+      # tag 不存在时该 action 会自动按当前 ref 创建；tag 已存在则只追加/更新附件。
+      - name: Publish to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            target/${{ env.RUST_TARGET_TRIPLE }}/release/bundle/nsis/*.exe
+            cap-windows-portable.zip
+          generate_release_notes: true
+          draft: false
+          prerelease: false
