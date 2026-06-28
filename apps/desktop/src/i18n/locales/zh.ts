@@ -84,6 +84,18 @@ export const dict = {
 			tooltipDelete: "删除",
 			deleteConfirm: "确定要删除此截图吗？",
 		},
+		storage: {
+			recordingsTitle: "录制保存目录",
+			recordingsDesc: "新录制将保存到此目录。",
+			screenshotsTitle: "截图保存目录",
+			screenshotsDesc: "新截图将保存到此目录。",
+			change: "更改",
+			resetDefault: "恢复默认",
+			defaultLabel: "（默认）",
+			errorCreate: "无法创建目录：{error}",
+			errorWritable: "目录不可写：{error}",
+			lockedHint: "请先停止录制",
+		},
 		hotkeys: {
 			title: "快捷键",
 			desc: "配置系统级键盘快捷键来控制 Cap。",

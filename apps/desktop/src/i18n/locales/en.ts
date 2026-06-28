@@ -82,6 +82,18 @@ export const dict = {
 			tooltipDelete: "Delete",
 			deleteConfirm: "Are you sure you want to delete this screenshot?",
 		},
+		storage: {
+			recordingsTitle: "Recording save directory",
+			recordingsDesc: "New recordings will be saved to this directory.",
+			screenshotsTitle: "Screenshot save directory",
+			screenshotsDesc: "New screenshots will be saved to this directory.",
+			change: "Change",
+			resetDefault: "Reset to default",
+			defaultLabel: "(default)",
+			errorCreate: "Cannot create directory: {error}",
+			errorWritable: "Directory is not writable: {error}",
+			lockedHint: "Please stop recording first",
+		},
 		hotkeys: {
 			title: "Shortcuts",
 			desc: "Configure system-wide keyboard shortcuts to control Cap.",
