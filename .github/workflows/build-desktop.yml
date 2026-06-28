@@ -40,7 +40,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Rust setup
         uses: dtolnay/rust-toolchain@1.88.0
@@ -97,7 +97,7 @@ jobs:
           RUST_TARGET_TRIPLE: ${{ env.RUST_TARGET_TRIPLE }}
 
       - name: Upload Windows installer
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: cap-windows-installer
           path: target/${{ env.RUST_TARGET_TRIPLE }}/release/bundle/nsis/*.exe
@@ -152,7 +152,7 @@ jobs:
           Write-Host "绿色版打包完成: cap-windows-portable.zip（$count 个文件, $size MB）"
 
       - name: Upload Windows portable zip
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: cap-windows-portable
           path: cap-windows-portable.zip
