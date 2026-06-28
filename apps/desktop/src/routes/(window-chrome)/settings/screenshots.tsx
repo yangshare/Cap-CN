@@ -30,6 +30,7 @@ import IconLucideFolder from "~icons/lucide/folder";
 import IconLucideImport from "~icons/lucide/import";
 import IconLucideSearch from "~icons/lucide/search";
 import { Section, SettingsPageContent } from "./Setting";
+import { DirSettingRow } from "./DirSettingRow";
 
 type Screenshot = RecordingMeta & {
 	path: string;
@@ -145,6 +146,7 @@ export default function Screenshots() {
 						</Button>
 					}
 				>
+					<DirSettingRow kind="screenshots" />
 					<Show
 						when={screenshots.data && screenshots.data.length > 0}
 						fallback={

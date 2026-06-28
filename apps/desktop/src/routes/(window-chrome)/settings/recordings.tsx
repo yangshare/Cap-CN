@@ -37,6 +37,7 @@ import {
 import IconLucideImport from "~icons/lucide/import";
 import IconLucideSearch from "~icons/lucide/search";
 import { Section, SettingsPageContent } from "./Setting";
+import { DirSettingRow } from "./DirSettingRow";
 
 type Recording = {
 	meta: RecordingMetaWithMetadata;
@@ -214,6 +215,7 @@ export default function Recordings() {
 						</Button>
 					}
 				>
+					<DirSettingRow kind="recordings" disabled={anyActiveRecording()} />
 					<Show
 						when={recordings.data && recordings.data.length > 0}
 						fallback={
