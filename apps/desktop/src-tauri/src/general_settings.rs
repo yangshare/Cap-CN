@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use specta::Type;
 use std::collections::BTreeMap;
+use std::path::PathBuf;
 #[cfg(target_os = "macos")]
 use tauri::Listener;
 use tauri::{AppHandle, Wry};
@@ -218,6 +219,10 @@ pub struct GeneralSettingsStore {
     pub enable_telemetry: bool,
     #[serde(default)]
     pub out_of_process_muxer: bool,
+    #[serde(default)]
+    pub custom_recordings_dir: Option<PathBuf>,
+    #[serde(default)]
+    pub custom_screenshots_dir: Option<PathBuf>,
 }
 
 fn default_enable_native_camera_preview() -> bool {
@@ -314,6 +319,8 @@ impl Default for GeneralSettingsStore {
             has_completed_onboarding: false,
             enable_telemetry: true,
             out_of_process_muxer: cap_recording::DEFAULT_OUT_OF_PROCESS_MUXER,
+            custom_recordings_dir: None,
+            custom_screenshots_dir: None,
         }
     }
 }
@@ -539,5 +546,31 @@ mod tests {
 
         assert!(!changed);
         assert_eq!(excluded_windows.len(), len);
+    }
+
+    #[test]
+    fn custom_dirs_default_to_none() {
+        let settings = GeneralSettingsStore::default();
+        assert!(settings.custom_recordings_dir.is_none());
+        assert!(settings.custom_screenshots_dir.is_none());
+    }
+
+    #[test]
+    fn custom_dirs_deserialize_from_json() {
+        let json = serde_json::json!({
+            "customRecordingsDir": "D:\\Videos",
+            "customScreenshotsDir": null,
+        });
+        let settings: GeneralSettingsStore = serde_json::from_value(json).unwrap();
+        assert_eq!(settings.custom_recordings_dir, Some(std::path::PathBuf::from("D:\\Videos")));
+        assert!(settings.custom_screenshots_dir.is_none());
+    }
+
+    #[test]
+    fn custom_dirs_absent_in_json_means_none() {
+        let json = serde_json::json!({});
+        let settings: GeneralSettingsStore = serde_json::from_value(json).unwrap();
+        assert!(settings.custom_recordings_dir.is_none());
+        assert!(settings.custom_screenshots_dir.is_none());
     }
 }
