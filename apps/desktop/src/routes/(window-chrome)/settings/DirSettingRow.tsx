@@ -38,7 +38,7 @@ export function DirSettingRow(props: { kind: DirKind; disabled?: boolean }) {
 		const data = settings.data;
 		if (!data) return null;
 		const key = customDirKey();
-		return (data as Record<string, string | null | undefined>)[key] ?? null;
+		return ((data as unknown) as Record<string, string | null | undefined>)[key] ?? null;
 	});
 
 	const isDefault = createMemo(() => currentPath() === null);

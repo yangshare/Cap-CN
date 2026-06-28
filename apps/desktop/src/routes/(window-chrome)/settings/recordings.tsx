@@ -215,7 +215,7 @@ export default function Recordings() {
 						</Button>
 					}
 				>
-					<DirSettingRow kind="recordings" disabled={anyActiveRecording()} />
+					<DirSettingRow kind="recordings" disabled={recordings.data?.some(hasActiveRecording) ?? false} />
 					<Show
 						when={recordings.data && recordings.data.length > 0}
 						fallback={

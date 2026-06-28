@@ -435,6 +435,12 @@ async automationShouldOpenScreenshotEditor(target: ScreenCaptureTarget) : Promis
 },
 async listAutomationCapabilities() : Promise<string[]> {
     return await TAURI_INVOKE("list_automation_capabilities");
+},
+async setRecordingsDir(path: string | null) : Promise<null> {
+    return await TAURI_INVOKE("set_recordings_dir", { path });
+},
+async setScreenshotsDir(path: string | null) : Promise<null> {
+    return await TAURI_INVOKE("set_screenshots_dir", { path });
 }
 }
 
