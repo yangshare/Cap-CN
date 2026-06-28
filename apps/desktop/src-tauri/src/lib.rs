@@ -5968,8 +5968,17 @@ pub(crate) async fn wait_for_recording_ready(app: &AppHandle, path: &Path) -> Re
     Ok(())
 }
 
-fn recordings_path(app: &AppHandle) -> PathBuf {
-    let path = app.path().app_data_dir().unwrap().join("recordings");
+pub(crate) fn effective_recordings_dir(app: &AppHandle) -> PathBuf {
+    general_settings::GeneralSettingsStore::get(app)
+        .ok()
+        .flatten()
+        .and_then(|s| s.custom_recordings_dir)
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or_else(|| app.path().app_data_dir().unwrap().join("recordings"))
+}
+
+pub(crate) fn recordings_path(app: &AppHandle) -> PathBuf {
+    let path = effective_recordings_dir(app);
     std::fs::create_dir_all(&path).unwrap_or_default();
     path
 }
@@ -5978,8 +5987,17 @@ fn recordings_path(app: &AppHandle) -> PathBuf {
 //     recordings_path(app).join(format!("{recording_id}.cap"))
 // }
 
-fn screenshots_path(app: &AppHandle) -> PathBuf {
-    let path = app.path().app_data_dir().unwrap().join("screenshots");
+pub(crate) fn effective_screenshots_dir(app: &AppHandle) -> PathBuf {
+    general_settings::GeneralSettingsStore::get(app)
+        .ok()
+        .flatten()
+        .and_then(|s| s.custom_screenshots_dir)
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or_else(|| app.path().app_data_dir().unwrap().join("screenshots"))
+}
+
+pub(crate) fn screenshots_path(app: &AppHandle) -> PathBuf {
+    let path = effective_screenshots_dir(app);
     std::fs::create_dir_all(&path).unwrap_or_default();
     path
 }
