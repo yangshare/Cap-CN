@@ -4425,6 +4425,8 @@ pub async fn run(recording_logging_handle: LoggingHandle, logs_dir: PathBuf) {
             automation::test_automation,
             automation::automation_should_open_screenshot_editor,
             automation::list_automation_capabilities,
+            set_recordings_dir,
+            set_screenshots_dir,
         ])
         .events(tauri_specta::collect_events![
             RecordingOptionsChanged,
@@ -6000,6 +6002,56 @@ pub(crate) fn screenshots_path(app: &AppHandle) -> PathBuf {
     let path = effective_screenshots_dir(app);
     std::fs::create_dir_all(&path).unwrap_or_default();
     path
+}
+
+#[tauri::command]
+#[specta::specta]
+fn set_recordings_dir(app: AppHandle, path: Option<String>) -> Result<(), String> {
+    apply_custom_dir(
+        &app,
+        |s, v| s.custom_recordings_dir = v,
+        path,
+    )
+}
+
+#[tauri::command]
+#[specta::specta]
+fn set_screenshots_dir(app: AppHandle, path: Option<String>) -> Result<(), String> {
+    apply_custom_dir(
+        &app,
+        |s, v| s.custom_screenshots_dir = v,
+        path,
+    )
+}
+
+fn apply_custom_dir(
+    app: &AppHandle,
+    setter: impl FnOnce(&mut general_settings::GeneralSettingsStore, Option<std::path::PathBuf>),
+    path: Option<String>,
+) -> Result<(), String> {
+    // None 或空串 → 清除字段
+    if path.as_ref().map_or(true, |p| p.trim().is_empty()) {
+        general_settings::GeneralSettingsStore::update(app, |s| setter(s, None)).map_err(|e| e.to_string())?;
+        return Ok(());
+    }
+
+    let target = std::path::PathBuf::from(path.unwrap());
+
+    // 可写校验：创建目录
+    std::fs::create_dir_all(&target)
+        .map_err(|e| format!("无法创建目录：{e}"))?;
+
+    // 可写校验：写入临时文件并删除
+    let test_file = target.join(".cap-write-test");
+    std::fs::write(&test_file, b"cap")
+        .map_err(|e| format!("目录不可写：{e}"))?;
+    std::fs::remove_file(&test_file)
+        .map_err(|e| format!("无法删除测试文件：{e}"))?;
+
+    // 校验通过 → 写入 store
+    general_settings::GeneralSettingsStore::update(app, |s| setter(s, Some(target))).map_err(|e| e.to_string())?;
+
+    Ok(())
 }
 
 // fn screenshot_path(app: &AppHandle, screenshot_id: &str) -> PathBuf {
