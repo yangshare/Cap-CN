@@ -379,9 +379,8 @@ fn load_all_previous_items(app: &AppHandle, load_thumbnails: bool) -> Vec<Cached
 fn create_previous_submenu(
     app: &AppHandle,
     cache: &PreviousItemsCache,
+    locale: TrayLocale,
 ) -> tauri::Result<Submenu<tauri::Wry>> {
-    let locale = tray_locale(app);
-
     if cache.items.is_empty() {
         let submenu = Submenu::with_id(app, "previous", tray_text(locale, TrayText::Previous), false)?;
         submenu.append(&MenuItem::with_id(
@@ -444,8 +443,10 @@ pub(crate) fn refresh_tray_menu_for_app(app: &AppHandle) {
     refresh_tray_menu(app, &state.cache);
 }
 
-fn create_mode_submenu(app: &AppHandle) -> tauri::Result<Submenu<tauri::Wry>> {
-    let locale = tray_locale(app);
+fn create_mode_submenu(
+    app: &AppHandle,
+    locale: TrayLocale,
+) -> tauri::Result<Submenu<tauri::Wry>> {
     let current_mode = get_current_mode(app);
 
     let submenu = Submenu::with_id(app, "select_mode", tray_text(locale, TrayText::SelectMode), true)?;
@@ -497,8 +498,8 @@ fn build_tray_menu(app: &AppHandle, cache: &PreviousItemsCache) -> tauri::Result
         );
     }
 
-    let previous_submenu = create_previous_submenu(app, cache)?;
-    let mode_submenu = create_mode_submenu(app)?;
+    let previous_submenu = create_previous_submenu(app, cache, locale)?;
+    let mode_submenu = create_mode_submenu(app, locale)?;
     let current_mode = get_current_mode(app);
     let is_screenshot_mode = current_mode == RecordingMode::Screenshot;
 
