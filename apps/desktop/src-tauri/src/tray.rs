@@ -445,18 +445,15 @@ pub(crate) fn refresh_tray_menu_for_app(app: &AppHandle) {
 }
 
 fn create_mode_submenu(app: &AppHandle) -> tauri::Result<Submenu<tauri::Wry>> {
+    let locale = tray_locale(app);
     let current_mode = get_current_mode(app);
 
-    let submenu = Submenu::with_id(app, "select_mode", "Select Mode", true)?;
+    let submenu = Submenu::with_id(app, "select_mode", tray_text(locale, TrayText::SelectMode), true)?;
 
     let modes = [
-        (TrayItem::ModeStudio, RecordingMode::Studio, "Studio"),
-        (TrayItem::ModeInstant, RecordingMode::Instant, "Instant"),
-        (
-            TrayItem::ModeScreenshot,
-            RecordingMode::Screenshot,
-            "Screenshot",
-        ),
+        (TrayItem::ModeStudio, RecordingMode::Studio, tray_text(locale, TrayText::ModeStudio)),
+        (TrayItem::ModeInstant, RecordingMode::Instant, tray_text(locale, TrayText::ModeInstant)),
+        (TrayItem::ModeScreenshot, RecordingMode::Screenshot, tray_text(locale, TrayText::ModeScreenshot)),
     ];
 
     for (tray_item, mode, label) in modes {
