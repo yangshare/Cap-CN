@@ -23,6 +23,112 @@ use tauri::{
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_opener::OpenerExt;
 use tauri_specta::Event;
+use tauri_plugin_store::StoreExt;
+
+#[derive(Clone, Copy, PartialEq)]
+enum TrayLocale {
+    En,
+    Zh,
+}
+
+fn tray_locale(app: &AppHandle) -> TrayLocale {
+    let explicit = app
+        .store("store")
+        .ok()
+        .and_then(|s| s.get("i18n"))
+        .and_then(|v| {
+            v.as_object()
+                .and_then(|obj| obj.get("language"))
+                .and_then(|l| l.as_str())
+                .map(str::to_owned)
+        });
+    if let Some(lang) = explicit {
+        return match lang.as_str() {
+            "zh" => TrayLocale::Zh,
+            _ => TrayLocale::En,
+        };
+    }
+
+    let is_zh = sys_locale::get_locales()
+        .any(|l| l.to_lowercase().starts_with("zh"));
+    if is_zh { TrayLocale::Zh } else { TrayLocale::En }
+}
+
+#[derive(Clone, Copy)]
+enum TrayText {
+    OpenMainWindow,
+    RecordDisplay,
+    RecordWindow,
+    RecordArea,
+    ScreenshotDisplay,
+    ScreenshotWindow,
+    ScreenshotArea,
+    TakeScreenshot,
+    ImportVideo,
+    SelectMode,
+    ModeStudio,
+    ModeInstant,
+    ModeScreenshot,
+    Previous,
+    NoRecentItems,
+    ViewAllRecordings,
+    ViewAllScreenshots,
+    Settings,
+    UploadLogs,
+    QuitCap,
+    RequestPermissions,
+}
+
+fn tray_text(locale: TrayLocale, key: TrayText) -> &'static str {
+    use TrayLocale::*;
+    use TrayText::*;
+    match (locale, key) {
+        // English
+        (En, OpenMainWindow) => "Open Main Window",
+        (En, RecordDisplay) => "Record Display",
+        (En, RecordWindow) => "Record Window",
+        (En, RecordArea) => "Record Area",
+        (En, ScreenshotDisplay) => "Screenshot Display",
+        (En, ScreenshotWindow) => "Screenshot Window",
+        (En, ScreenshotArea) => "Screenshot Area",
+        (En, TakeScreenshot) => "Take a Screenshot",
+        (En, ImportVideo) => "Import Video...",
+        (En, SelectMode) => "Select Mode",
+        (En, ModeStudio) => "Studio",
+        (En, ModeInstant) => "Instant",
+        (En, ModeScreenshot) => "Screenshot",
+        (En, Previous) => "Previous",
+        (En, NoRecentItems) => "No recent items",
+        (En, ViewAllRecordings) => "View all recordings",
+        (En, ViewAllScreenshots) => "View all screenshots",
+        (En, Settings) => "Settings",
+        (En, UploadLogs) => "Upload Logs",
+        (En, QuitCap) => "Quit Cap",
+        (En, RequestPermissions) => "Request Permissions",
+        // 中文
+        (Zh, OpenMainWindow) => "打开主窗口",
+        (Zh, RecordDisplay) => "录制显示器",
+        (Zh, RecordWindow) => "录制窗口",
+        (Zh, RecordArea) => "录制区域",
+        (Zh, ScreenshotDisplay) => "截取显示器",
+        (Zh, ScreenshotWindow) => "截取窗口",
+        (Zh, ScreenshotArea) => "截取区域",
+        (Zh, TakeScreenshot) => "截图",
+        (Zh, ImportVideo) => "导入视频…",
+        (Zh, SelectMode) => "选择模式",
+        (Zh, ModeStudio) => "工作室",
+        (Zh, ModeInstant) => "即时",
+        (Zh, ModeScreenshot) => "截图",
+        (Zh, Previous) => "最近项目",
+        (Zh, NoRecentItems) => "暂无最近项目",
+        (Zh, ViewAllRecordings) => "查看全部录制",
+        (Zh, ViewAllScreenshots) => "查看全部截图",
+        (Zh, Settings) => "设置",
+        (Zh, UploadLogs) => "上传日志",
+        (Zh, QuitCap) => "退出 Cap",
+        (Zh, RequestPermissions) => "请求权限",
+    }
+}
 
 const PREVIOUS_ITEM_PREFIX: &str = "previous_item_";
 const MAX_PREVIOUS_ITEMS: usize = 6;
