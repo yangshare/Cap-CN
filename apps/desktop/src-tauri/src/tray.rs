@@ -472,6 +472,7 @@ fn create_mode_submenu(app: &AppHandle) -> tauri::Result<Submenu<tauri::Wry>> {
 }
 
 fn build_tray_menu(app: &AppHandle, cache: &PreviousItemsCache) -> tauri::Result<Menu<tauri::Wry>> {
+    let locale = tray_locale(app);
     if should_use_minimal_onboarding_tray_menu(app) {
         return Menu::with_items(
             app,
@@ -479,7 +480,7 @@ fn build_tray_menu(app: &AppHandle, cache: &PreviousItemsCache) -> tauri::Result
                 &MenuItem::with_id(
                     app,
                     TrayItem::RequestPermissions,
-                    "Request Permissions",
+                    tray_text(locale, TrayText::RequestPermissions),
                     true,
                     None::<&str>,
                 )?,
@@ -491,7 +492,7 @@ fn build_tray_menu(app: &AppHandle, cache: &PreviousItemsCache) -> tauri::Result
                     false,
                     None::<&str>,
                 )?,
-                &MenuItem::with_id(app, TrayItem::Quit, "Quit Cap", true, None::<&str>)?,
+                &MenuItem::with_id(app, TrayItem::Quit, tray_text(locale, TrayText::QuitCap), true, None::<&str>)?,
             ],
         );
     }
@@ -506,7 +507,7 @@ fn build_tray_menu(app: &AppHandle, cache: &PreviousItemsCache) -> tauri::Result
     menu.append(&MenuItem::with_id(
         app,
         TrayItem::OpenCap,
-        "Open Main Window",
+        tray_text(locale, TrayText::OpenMainWindow),
         true,
         None::<&str>,
     )?)?;
@@ -515,21 +516,21 @@ fn build_tray_menu(app: &AppHandle, cache: &PreviousItemsCache) -> tauri::Result
         menu.append(&MenuItem::with_id(
             app,
             TrayItem::RecordDisplay,
-            "Screenshot Display",
+            tray_text(locale, TrayText::ScreenshotDisplay),
             true,
             None::<&str>,
         )?)?;
         menu.append(&MenuItem::with_id(
             app,
             TrayItem::RecordWindow,
-            "Screenshot Window",
+            tray_text(locale, TrayText::ScreenshotWindow),
             true,
             None::<&str>,
         )?)?;
         menu.append(&MenuItem::with_id(
             app,
             TrayItem::RecordArea,
-            "Screenshot Area",
+            tray_text(locale, TrayText::ScreenshotArea),
             true,
             None::<&str>,
         )?)?;
@@ -537,28 +538,28 @@ fn build_tray_menu(app: &AppHandle, cache: &PreviousItemsCache) -> tauri::Result
         menu.append(&MenuItem::with_id(
             app,
             TrayItem::RecordDisplay,
-            "Record Display",
+            tray_text(locale, TrayText::RecordDisplay),
             true,
             None::<&str>,
         )?)?;
         menu.append(&MenuItem::with_id(
             app,
             TrayItem::RecordWindow,
-            "Record Window",
+            tray_text(locale, TrayText::RecordWindow),
             true,
             None::<&str>,
         )?)?;
         menu.append(&MenuItem::with_id(
             app,
             TrayItem::RecordArea,
-            "Record Area",
+            tray_text(locale, TrayText::RecordArea),
             true,
             None::<&str>,
         )?)?;
         menu.append(&MenuItem::with_id(
             app,
             TrayItem::TakeScreenshot,
-            "Take a Screenshot",
+            tray_text(locale, TrayText::TakeScreenshot),
             true,
             None::<&str>,
         )?)?;
@@ -567,7 +568,7 @@ fn build_tray_menu(app: &AppHandle, cache: &PreviousItemsCache) -> tauri::Result
     menu.append(&MenuItem::with_id(
         app,
         TrayItem::ImportVideo,
-        "Import Video...",
+        tray_text(locale, TrayText::ImportVideo),
         true,
         None::<&str>,
     )?)?;
@@ -580,21 +581,21 @@ fn build_tray_menu(app: &AppHandle, cache: &PreviousItemsCache) -> tauri::Result
     menu.append(&MenuItem::with_id(
         app,
         TrayItem::ViewAllRecordings,
-        "View all recordings",
+        tray_text(locale, TrayText::ViewAllRecordings),
         true,
         None::<&str>,
     )?)?;
     menu.append(&MenuItem::with_id(
         app,
         TrayItem::ViewAllScreenshots,
-        "View all screenshots",
+        tray_text(locale, TrayText::ViewAllScreenshots),
         true,
         None::<&str>,
     )?)?;
     menu.append(&MenuItem::with_id(
         app,
         TrayItem::OpenSettings,
-        "Settings",
+        tray_text(locale, TrayText::Settings),
         true,
         None::<&str>,
     )?)?;
@@ -603,7 +604,7 @@ fn build_tray_menu(app: &AppHandle, cache: &PreviousItemsCache) -> tauri::Result
     menu.append(&MenuItem::with_id(
         app,
         TrayItem::UploadLogs,
-        "Upload Logs",
+        tray_text(locale, TrayText::UploadLogs),
         true,
         None::<&str>,
     )?)?;
@@ -617,7 +618,7 @@ fn build_tray_menu(app: &AppHandle, cache: &PreviousItemsCache) -> tauri::Result
     menu.append(&MenuItem::with_id(
         app,
         TrayItem::Quit,
-        "Quit Cap",
+        tray_text(locale, TrayText::QuitCap),
         true,
         None::<&str>,
     )?)?;
