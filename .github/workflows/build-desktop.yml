@@ -19,6 +19,15 @@ concurrency:
 
 env:
   RUST_TARGET_TRIPLE: x86_64-pc-windows-msvc
+  # CI-only profile 覆盖：通过环境变量覆盖 Cargo.toml 的 release profile，
+  # 不改 Cargo.toml（本地构建保持原样），仅加速 CI 链接阶段。
+  # - LTO: fat(true) → thin：链接时间大幅下降，体积/性能损失极小
+  # - CODEGEN_UNITS: 1 → 16：串行 → 并行代码生成（runner 4 核）
+  # - DEBUG: 完整 debuginfo → line-tables-only：保留 panic 行号（sentry 崩溃定位够用），
+  #   去掉完整变量信息，减小体积、加快链接
+  CARGO_PROFILE_RELEASE_LTO: "thin"
+  CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "16"
+  CARGO_PROFILE_RELEASE_DEBUG: "line-tables-only"
 
 jobs:
   build:
@@ -61,8 +70,6 @@ jobs:
       - name: Run cap-setup
         shell: bash
         run: pnpm -w cap-setup
-        env:
-          RUST_TARGET_TRIPLE: ${{ env.RUST_TARGET_TRIPLE }}
 
       # 构建 cap-muxer / cap-exporter 等 Rust sidecar 二进制
       - name: Build desktop sidecar binaries
@@ -83,7 +90,6 @@ jobs:
         env:
           # https://github.com/tauri-apps/tauri-action/issues/740
           CI: false
-          RUST_TARGET_TRIPLE: ${{ env.RUST_TARGET_TRIPLE }}
 
       - name: Upload Windows installer
         uses: actions/upload-artifact@v5
