@@ -1920,13 +1920,7 @@ pub async fn start_image_import(app: AppHandle, source_path: PathBuf) -> Result<
         .await
         .map_err(|e| format!("Failed to import image: {e}"))??;
 
-    let screenshots_dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|e| e.to_string())?
-        .join("screenshots");
-    std::fs::create_dir_all(&screenshots_dir)
-        .map_err(|e| format!("Failed to create screenshots directory: {e}"))?;
+    let screenshots_dir = crate::screenshots_path(&app);
 
     let project_name = generate_image_project_name(&source_path);
     let filename = project_name.replace(":", ".");

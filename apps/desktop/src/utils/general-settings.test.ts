@@ -45,6 +45,30 @@ describe("general-settings", () => {
 		});
 	});
 
+	it("defaults custom directories when fields are missing", () => {
+		expect(
+			deriveGeneralSettings({
+				enableNativeCameraPreview: false,
+			}),
+		).toMatchObject({
+			customRecordingsDir: null,
+			customScreenshotsDir: null,
+		});
+	});
+
+	it("preserves explicit custom directories", () => {
+		expect(
+			deriveGeneralSettings({
+				enableNativeCameraPreview: false,
+				customRecordingsDir: "D:\\Videos",
+				customScreenshotsDir: "D:\\Pictures",
+			}),
+		).toMatchObject({
+			customRecordingsDir: "D:\\Videos",
+			customScreenshotsDir: "D:\\Pictures",
+		});
+	});
+
 	it("preserves explicit disabled recording enhancements", () => {
 		expect(
 			deriveGeneralSettings({

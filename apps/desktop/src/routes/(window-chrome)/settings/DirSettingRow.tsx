@@ -1,20 +1,20 @@
 import { Button } from "@cap/ui-solid";
+import { useQueryClient } from "@tanstack/solid-query";
 import { open } from "@tauri-apps/plugin-dialog";
 import { createMemo, Show } from "solid-js";
+import { useI18n } from "~/i18n/I18nProvider";
 import { generalSettingsStore } from "~/store";
 import { commands } from "~/utils/tauri";
-import { useI18n } from "~/i18n/I18nProvider";
 import { SectionRows, SettingItem } from "./Setting";
 
-type DirKind = "recordings" | "screenshots";
+export type DirKind = "recordings" | "screenshots";
+
+export const dirSettingQueryKey = (kind: DirKind) => [kind] as const;
 
 export function DirSettingRow(props: { kind: DirKind; disabled?: boolean }) {
 	const { t } = useI18n();
+	const queryClient = useQueryClient();
 	const settings = generalSettingsStore.createQuery();
-
-	const customDirKey = createMemo(() =>
-		props.kind === "recordings" ? "customRecordingsDir" : "customScreenshotsDir",
-	);
 
 	const setDirCommand = createMemo(() =>
 		props.kind === "recordings"
@@ -37,8 +37,9 @@ export function DirSettingRow(props: { kind: DirKind; disabled?: boolean }) {
 	const currentPath = createMemo(() => {
 		const data = settings.data;
 		if (!data) return null;
-		const key = customDirKey();
-		return ((data as unknown) as Record<string, string | null | undefined>)[key] ?? null;
+		return props.kind === "recordings"
+			? (data.customRecordingsDir ?? null)
+			: (data.customScreenshotsDir ?? null);
 	});
 
 	const isDefault = createMemo(() => currentPath() === null);
@@ -46,12 +47,19 @@ export function DirSettingRow(props: { kind: DirKind; disabled?: boolean }) {
 	const handleChange = async () => {
 		const selected = await open({ directory: true, multiple: false });
 		if (!selected) return;
-		const path = typeof selected === "string" ? selected : selected;
+		const path = typeof selected === "string" ? selected : selected[0];
+		if (!path) return;
 		try {
 			await setDirCommand()(path);
+			await queryClient.invalidateQueries({
+				queryKey: dirSettingQueryKey(props.kind),
+			});
 		} catch (e) {
 			const msg = String(e);
-			if (msg.includes("无法创建目录") || msg.includes("Cannot create directory")) {
+			if (
+				msg.includes("无法创建目录") ||
+				msg.includes("Cannot create directory")
+			) {
 				alert(t("settings.storage.errorCreate", { error: msg }));
 			} else if (msg.includes("目录不可写") || msg.includes("not writable")) {
 				alert(t("settings.storage.errorWritable", { error: msg }));
@@ -64,6 +72,9 @@ export function DirSettingRow(props: { kind: DirKind; disabled?: boolean }) {
 	const handleReset = async () => {
 		try {
 			await setDirCommand()(null);
+			await queryClient.invalidateQueries({
+				queryKey: dirSettingQueryKey(props.kind),
+			});
 		} catch (e) {
 			alert(String(e));
 		}
@@ -71,10 +82,7 @@ export function DirSettingRow(props: { kind: DirKind; disabled?: boolean }) {
 
 	return (
 		<SectionRows>
-			<SettingItem
-				label={t(titleKey())}
-				description={t(descKey())}
-			>
+			<SettingItem label={t(titleKey())} description={t(descKey())}>
 				<div class="flex items-center gap-2">
 					<Show when={isDefault()}>
 						<span class="text-xs text-gray-10 truncate max-w-[120px]">

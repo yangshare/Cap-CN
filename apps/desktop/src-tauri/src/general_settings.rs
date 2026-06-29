@@ -562,7 +562,10 @@ mod tests {
             "customScreenshotsDir": null,
         });
         let settings: GeneralSettingsStore = serde_json::from_value(json).unwrap();
-        assert_eq!(settings.custom_recordings_dir, Some(std::path::PathBuf::from("D:\\Videos")));
+        assert_eq!(
+            settings.custom_recordings_dir,
+            Some(std::path::PathBuf::from("D:\\Videos"))
+        );
         assert!(settings.custom_screenshots_dir.is_none());
     }
 
@@ -572,5 +575,16 @@ mod tests {
         let settings: GeneralSettingsStore = serde_json::from_value(json).unwrap();
         assert!(settings.custom_recordings_dir.is_none());
         assert!(settings.custom_screenshots_dir.is_none());
+    }
+
+    #[test]
+    fn custom_dirs_are_exported_to_typescript_bindings() {
+        let ts = specta_typescript::export::<GeneralSettingsStore>(
+            &specta_typescript::Typescript::default(),
+        )
+        .unwrap();
+
+        assert!(ts.contains("customRecordingsDir?: string | null"));
+        assert!(ts.contains("customScreenshotsDir?: string | null"));
     }
 }

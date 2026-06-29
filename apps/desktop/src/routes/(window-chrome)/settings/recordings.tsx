@@ -36,8 +36,8 @@ import {
 } from "~/utils/tauri";
 import IconLucideImport from "~icons/lucide/import";
 import IconLucideSearch from "~icons/lucide/search";
-import { Section, SettingsPageContent } from "./Setting";
 import { DirSettingRow } from "./DirSettingRow";
+import { Section, SettingsPageContent } from "./Setting";
 
 type Recording = {
 	meta: RecordingMetaWithMetadata;
@@ -215,7 +215,10 @@ export default function Recordings() {
 						</Button>
 					}
 				>
-					<DirSettingRow kind="recordings" disabled={recordings.data?.some(hasActiveRecording) ?? false} />
+					<DirSettingRow
+						kind="recordings"
+						disabled={recordings.data?.some(hasActiveRecording) ?? false}
+					/>
 					<Show
 						when={recordings.data && recordings.data.length > 0}
 						fallback={
@@ -387,7 +390,11 @@ function RecordingItem(props: {
 
 						<Show when={props.recording.meta.clip_count > 1}>
 							<div class="px-2 py-0.5 flex items-center font-medium text-[11px] text-gray-12 rounded-full w-fit bg-gray-4">
-								<p>{t("settings.recordings.clips", { n: props.recording.meta.clip_count })}</p>
+								<p>
+									{t("settings.recordings.clips", {
+										n: props.recording.meta.clip_count,
+									})}
+								</p>
 							</div>
 						</Show>
 

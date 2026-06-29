@@ -16,12 +16,12 @@ import {
 	type ParentProps,
 	Show,
 } from "solid-js";
+import { useI18n } from "~/i18n/I18nProvider";
 import { Input } from "~/routes/editor/ui";
 import { trackEvent } from "~/utils/analytics";
 import { createTauriEventListener } from "~/utils/createEventListener";
 import { importImageFromPicker, showImportError } from "~/utils/importMedia";
 import { commands, events, type RecordingMeta } from "~/utils/tauri";
-import { useI18n } from "~/i18n/I18nProvider";
 
 import IconCapTrash from "~icons/cap/trash";
 import IconLucideCopy from "~icons/lucide/copy";
@@ -29,8 +29,8 @@ import IconLucideEdit from "~icons/lucide/edit";
 import IconLucideFolder from "~icons/lucide/folder";
 import IconLucideImport from "~icons/lucide/import";
 import IconLucideSearch from "~icons/lucide/search";
-import { Section, SettingsPageContent } from "./Setting";
 import { DirSettingRow } from "./DirSettingRow";
+import { Section, SettingsPageContent } from "./Setting";
 
 type Screenshot = RecordingMeta & {
 	path: string;
@@ -285,10 +285,7 @@ function ScreenshotItem(props: {
 				<TooltipIconButton
 					tooltipText={t("settings.screenshots.tooltipDelete")}
 					onClick={async () => {
-						if (
-							!(await ask(t("settings.screenshots.deleteConfirm")))
-						)
-							return;
+						if (!(await ask(t("settings.screenshots.deleteConfirm")))) return;
 						const parent = props.screenshot.path.replace(/[/\\][^/\\]+$/, "");
 						await remove(parent, { recursive: true });
 
