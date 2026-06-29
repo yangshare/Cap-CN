@@ -2,7 +2,7 @@
 	<img width="150" height="150" src="https://github.com/CapSoftware/Cap/blob/main/apps/desktop/src-tauri/icons/Square310x310Logo.png" alt="Cap logo">
 </p>
 
-<h1 align="center">Cap</h1>
+<h1 align="center">Cap-CN</h1>
 
 <p align="center">
 	美观、可分享的屏幕录制工具。开源、快速，为希望掌控自身数据的团队而生。
@@ -26,7 +26,10 @@
 	</a>
 </p>
 
-<img src="https://raw.githubusercontent.com/CapSoftware/Cap/refs/heads/main/apps/web/public/landing-cover.png" alt="Cap 应用预览">
+<img width="330" height="395" alt="image" src="https://github.com/user-attachments/assets/983d486a-1b5a-49af-83fd-091d57ffeabc" />
+<img width="782" height="775" alt="image" src="https://github.com/user-attachments/assets/a452cee2-d5d8-44c1-98bc-694e08a721d0" />
+
+
 
 Cap 是 Loom 的开源替代方案。提供快速屏幕录制、精细的本地编辑、即时分享链接、评论、字幕、分析、团队工作区、自定义域名、自定义 S3 存储以及需要完全控制时的完整自托管能力。
 
