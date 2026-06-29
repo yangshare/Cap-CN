@@ -380,19 +380,21 @@ fn create_previous_submenu(
     app: &AppHandle,
     cache: &PreviousItemsCache,
 ) -> tauri::Result<Submenu<tauri::Wry>> {
+    let locale = tray_locale(app);
+
     if cache.items.is_empty() {
-        let submenu = Submenu::with_id(app, "previous", "Previous", false)?;
+        let submenu = Submenu::with_id(app, "previous", tray_text(locale, TrayText::Previous), false)?;
         submenu.append(&MenuItem::with_id(
             app,
             "previous_empty",
-            "No recent items",
+            tray_text(locale, TrayText::NoRecentItems),
             false,
             None::<&str>,
         )?)?;
         return Ok(submenu);
     }
 
-    let submenu = Submenu::with_id(app, "previous", "Previous", true)?;
+    let submenu = Submenu::with_id(app, "previous", tray_text(locale, TrayText::Previous), true)?;
 
     for item in &cache.items {
         let id = TrayItem::PreviousItem(item.path.to_string_lossy().to_string());
